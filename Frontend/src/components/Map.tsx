@@ -1,19 +1,13 @@
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import { Icon } from 'leaflet';
+import { useRef, useEffect } from 'react';
+import MapboxMap, { Marker, Popup } from 'react-map-gl/mapbox';
+import type { MapRef } from 'react-map-gl/mapbox';
 import type { Fountain } from '../types/fountain';
-import 'leaflet/dist/leaflet.css';
+import userPinIcon from '../assets/icons/UserPin.svg';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import './Map.css';
 
-// Custom icon for water fountains
-const fountainIcon = new Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+// Set only in .env.local (never commit). Leave unset in deployed previews to avoid using quota.
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 interface MapProps {
   fountains: Fountain[];
@@ -23,54 +17,81 @@ interface MapProps {
   onMapClick?: () => void;
 }
 
-// Component to handle map movements
-function MapController({ selectedFountain }: { selectedFountain?: Fountain | null }) {
-  const map = useMap();
+// [latitude, longitude] to match rest of app
+const DEFAULT_CENTER: [number, number] = [28.1235, -15.4363];
+const DEFAULT_ZOOM = 13;
+
+function Map({
+  fountains,
+  center = DEFAULT_CENTER,
+  zoom = DEFAULT_ZOOM,
+  selectedFountain,
+  onMapClick,
+}: MapProps) {
+  const mapRef = useRef<MapRef>(null);
 
   useEffect(() => {
-    if (selectedFountain) {
-      map.flyTo([selectedFountain.latitude, selectedFountain.longitude], 16, {
-        duration: 1.5
+    if (selectedFountain && mapRef.current) {
+      mapRef.current.flyTo({
+        center: [selectedFountain.longitude, selectedFountain.latitude],
+        zoom: 16,
+        duration: 1500,
       });
     }
-  }, [selectedFountain, map]);
+  }, [selectedFountain]);
 
-  return null;
-}
+  if (!MAPBOX_TOKEN || MAPBOX_TOKEN === 'your_token_here') {
+    return (
+      <div className="map-container map-container--error">
+        <p className="map-container--error-title">Mapbox token needed</p>
+        <ol className="map-container--error-steps">
+          <li>Create <code>.env.local</code> in the <strong>Frontend</strong> folder (same folder as <code>package.json</code>).</li>
+          <li>Add one line: <code>VITE_MAPBOX_ACCESS_TOKEN=pk.your_real_token</code></li>
+          <li>Get a token at <a href="https://account.mapbox.com/access-tokens/" target="_blank" rel="noreferrer">account.mapbox.com</a></li>
+          <li><strong>Restart the dev server</strong> (stop with Ctrl+C, then run <code>npm run dev</code> again).</li>
+        </ol>
+      </div>
+    );
+  }
 
-// Component to handle map events
-function MapEventHandler({ onMapClick }: { onMapClick?: () => void }) {
-  useMapEvents({
-    click: () => {
-      onMapClick?.();
-    }
-  });
+  const [lat, lng] = center;
 
-  return null;
-}
-
-const Map = ({ fountains, center = [28.1235, -15.4363], zoom = 13, selectedFountain, onMapClick }: MapProps) => {
   return (
     <div className="map-container">
-      <MapContainer 
-        center={center} 
-        zoom={zoom} 
-        scrollWheelZoom={true}
-        style={{ height: '100%', width: '100%' }}
+      <MapboxMap
+        ref={mapRef}
+        mapboxAccessToken={MAPBOX_TOKEN}
+        initialViewState={{
+          longitude: lng,
+          latitude: lat,
+          zoom,
+        }}
+        style={{ width: '100%', height: '100%' }}
+        mapStyle="mapbox://styles/mapbox/standard"
+        onLoad={(e) => {
+          const map = e.target;
+          if (typeof map.setConfigProperty === 'function') {
+            map.setConfigProperty('basemap', 'theme', 'faded');
+            map.setConfigProperty('basemap', 'lightPreset', 'night');
+          }
+        }}
+        onClick={() => onMapClick?.()}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <MapController selectedFountain={selectedFountain} />
-        <MapEventHandler onMapClick={onMapClick} />
         {fountains.map((fountain) => (
-          <Marker 
-            key={fountain.id} 
-            position={[fountain.latitude, fountain.longitude]}
-            icon={fountainIcon}
+          <Marker
+            key={fountain.id}
+            longitude={fountain.longitude}
+            latitude={fountain.latitude}
+            anchor="bottom"
           >
-            <Popup>
+            <img src={userPinIcon} alt="" className="map-marker-icon" />
+            <Popup
+              longitude={fountain.longitude}
+              latitude={fountain.latitude}
+              anchor="bottom"
+              closeButton
+              closeOnClick={false}
+            >
               <div className="fountain-popup">
                 <h3>{fountain.name}</h3>
                 {fountain.description && <p>{fountain.description}</p>}
@@ -81,9 +102,9 @@ const Map = ({ fountains, center = [28.1235, -15.4363], zoom = 13, selectedFount
             </Popup>
           </Marker>
         ))}
-      </MapContainer>
+      </MapboxMap>
     </div>
   );
-};
+}
 
 export default Map;

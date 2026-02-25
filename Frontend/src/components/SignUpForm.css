@@ -1,0 +1,8 @@
+.sign-up-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.sign-up-form .primary-button {
+  margin-top: 1rem;
+}
