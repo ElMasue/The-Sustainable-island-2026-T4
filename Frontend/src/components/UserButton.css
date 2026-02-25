@@ -1,0 +1,40 @@
+.user-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 900;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.user-button:hover {
+  background-color: #f5f5f5;
+}
+
+.user-button__icon {
+  color: #666;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .user-button {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 42px;
+    height: 42px;
+  }
+
+  .user-button__icon {
+    width: 18px;
+    height: 18px;
+  }
+}

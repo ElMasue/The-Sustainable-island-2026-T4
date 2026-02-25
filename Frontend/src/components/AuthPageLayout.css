@@ -1,0 +1,22 @@
+.auth-page-layout {
+  min-height: 100vh;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-page-layout__content {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .auth-page-layout__content {
+    padding: 1.5rem 1rem;
+  }
+}
