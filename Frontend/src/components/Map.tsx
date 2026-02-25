@@ -1,4 +1,5 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import type { Fountain } from '../types/fountain';
 import 'leaflet/dist/leaflet.css';
@@ -18,9 +19,37 @@ interface MapProps {
   fountains: Fountain[];
   center?: [number, number];
   zoom?: number;
+  selectedFountain?: Fountain | null;
+  onMapClick?: () => void;
 }
 
-const Map = ({ fountains, center = [28.1235, -15.4363], zoom = 13 }: MapProps) => {
+// Component to handle map movements
+function MapController({ selectedFountain }: { selectedFountain?: Fountain | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (selectedFountain) {
+      map.flyTo([selectedFountain.latitude, selectedFountain.longitude], 16, {
+        duration: 1.5
+      });
+    }
+  }, [selectedFountain, map]);
+
+  return null;
+}
+
+// Component to handle map events
+function MapEventHandler({ onMapClick }: { onMapClick?: () => void }) {
+  useMapEvents({
+    click: () => {
+      onMapClick?.();
+    }
+  });
+
+  return null;
+}
+
+const Map = ({ fountains, center = [28.1235, -15.4363], zoom = 13, selectedFountain, onMapClick }: MapProps) => {
   return (
     <div className="map-container">
       <MapContainer 
@@ -33,6 +62,8 @@ const Map = ({ fountains, center = [28.1235, -15.4363], zoom = 13 }: MapProps) =
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <MapController selectedFountain={selectedFountain} />
+        <MapEventHandler onMapClick={onMapClick} />
         {fountains.map((fountain) => (
           <Marker 
             key={fountain.id} 
