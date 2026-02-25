@@ -1,0 +1,157 @@
+.fountain-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.fountain-detail-header {
+  margin: 0 -1rem 1rem -1rem;
+}
+
+.fountain-detail-map {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background: #f0f0f0;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.fountain-detail-map img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fountain-detail-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.fountain-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.fountain-detail-title-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fountain-detail-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #000;
+  margin: 0;
+}
+
+.fountain-detail-category {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.fountain-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.meta-badge {
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+  background: #e8f5e9;
+  color: #4caf50;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.meta-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.fountain-detail-images {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.detail-image {
+  width: 100%;
+  height: 140px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.detail-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fountain-detail-section {
+  padding-bottom: 0.5rem;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 0.5rem 0;
+}
+
+.section-subtitle {
+  font-size: 0.875rem;
+  color: #999;
+  margin: 0 0 1rem 0;
+}
+
+.section-text {
+  font-size: 0.9375rem;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.rating-emojis {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.emoji-button {
+  width: 52px;
+  height: 52px;
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  background: white;
+  font-size: 1.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-button:hover {
+  border-color: #FFD700;
+  background: #fffef0;
+  transform: scale(1.05);
+}
+
+.emoji-button:active {
+  transform: scale(0.95);
+}

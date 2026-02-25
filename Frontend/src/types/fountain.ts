@@ -5,4 +5,10 @@ export interface Fountain {
   longitude: number;
   description?: string;
   isOperational: boolean;
+  distance?: string;
+  rating?: number;
+  isFree?: boolean;
+  imageUrl?: string;
+  images?: string[];
+  category?: string;
 }

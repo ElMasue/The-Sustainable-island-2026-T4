@@ -1,0 +1,59 @@
+.profile-menu {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.profile-menu-header {
+  flex-shrink: 0;
+  padding: 1rem 1.5rem;
+  background: white;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.profile-user-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #d0d0d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: #1a1a1a;
+}
+
+.user-stats {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.user-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.profile-menu-content {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  overflow: hidden;
+}

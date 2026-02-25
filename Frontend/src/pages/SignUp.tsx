@@ -21,7 +21,7 @@ function SignUp() {
 
   return (
     <div className="signup-container">
-      <BackHeader title="Sign Up" backTo="/profile" />
+      <BackHeader title="Sign Up" backTo="/" />
 
       <form className="signup-form" onSubmit={handleContinue}>
         <FormInput

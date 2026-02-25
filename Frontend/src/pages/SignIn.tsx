@@ -20,7 +20,7 @@ function SignIn() {
 
   return (
     <div className="signin-container">
-      <BackHeader title="Sign In" backTo="/profile" />
+      <BackHeader title="Sign In" backTo="/" />
 
       <form className="signin-form" onSubmit={handleContinue}>
         <FormInput
