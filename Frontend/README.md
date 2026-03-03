@@ -1,6 +1,38 @@
-# React + TypeScript + Vite
+# Frontend – React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+## Mapbox token (for the map)
+
+To show the map locally:
+
+1. **Create the file in the right place**  
+   Create `Frontend/.env.local` (inside the **Frontend** folder, next to `package.json`). Not in the project root.
+
+2. **Put exactly this in it** (with your real token):
+   ```bash
+   VITE_MAPBOX_ACCESS_TOKEN=pk.eyJ1Ijoi...
+   ```
+   - No spaces around `=`
+   - No quotes unless the token contains spaces
+   - Replace `pk.eyJ1Ijoi...` with your token from [account.mapbox.com/access-tokens](https://account.mapbox.com/access-tokens/)
+
+3. **Restart the dev server**  
+   Vite only reads `.env.local` when it starts:
+   - Stop the server (Ctrl+C in the terminal where `npm run dev` is running)
+   - Start again: `cd Frontend && npm run dev`
+
+4. Reload the app in the browser; the map should load if the token is valid.
+
+**Keeping the key off GitHub**
+
+- Put your real token **only** in `Frontend/.env.local`.
+- `.env.local` is in `.gitignore`, so Git will **never** commit it. Your token stays only on your machine.
+- Never put the real token in `.env.example` or any other file that gets committed.
+- Before your first push, you can check: run `git status` in the Frontend folder — `.env.local` should **not** appear. If it does, do **not** run `git add .env.local`.
+- For deployed/preview sites (e.g. Vercel, Netlify): do **not** add `VITE_MAPBOX_ACCESS_TOKEN` in the host’s environment settings if you want to avoid using Mapbox quota there.
+
+For online/preview deployments, leave the token unset so the app doesn’t use your Mapbox quota.
 
 Currently, two official plugins are available:
 

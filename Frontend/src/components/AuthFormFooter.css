@@ -1,0 +1,17 @@
+.auth-form-footer {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.auth-form-footer__link {
+  color: #000;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.auth-form-footer__link:hover {
+  text-decoration: underline;
+}

@@ -7,6 +7,51 @@
   z-index: 1;
 }
 
+.map-marker-icon {
+  display: block;
+  width: 32px;
+  height: 40px;
+  pointer-events: none;
+}
+
+.map-container--error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: #f1f5f9;
+  color: #475569;
+  text-align: left;
+}
+
+.map-container--error-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.map-container--error-steps {
+  margin: 0;
+  padding-left: 1.25rem;
+  line-height: 1.7;
+}
+
+.map-container--error-steps li {
+  margin-bottom: 0.5rem;
+}
+
+.map-container--error code {
+  background: #e2e8f0;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+.map-container--error a {
+  color: #3182f6;
+}
+
 .fountain-popup h3 {
   margin: 0 0 8px 0;
   color: #2c3e50;
@@ -39,11 +84,4 @@
     font-size: 12px;
   }
 
-  /* Make map controls larger on mobile */
-  .leaflet-control-zoom a {
-    width: 36px !important;
-    height: 36px !important;
-    line-height: 36px !important;
-    font-size: 20px !important;
-  }
 }
