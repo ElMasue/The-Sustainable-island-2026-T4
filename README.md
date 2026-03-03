@@ -19,9 +19,13 @@ An interactive map to find water fountains and refill stations, promoting the re
 ### Frontend
 ```bash
 cd Frontend
-npm install
+npm install   # installs React, Mapbox, Leaflet etc.
 npm run dev
 ```
+
+> ⚠️ If you plan to run without a Mapbox access token, the app will automatically
+> fall back to an OpenStreetMap map (Leaflet). The required `leaflet` package
+> is already added to `package.json` and will be pulled in by `npm install`.
 
 ### Backend
 ```bash
@@ -33,6 +37,7 @@ npm run dev
 ## Technologies
 
 - React 18 + TypeScript
-- Leaflet & React-Leaflet for maps
+- Leaflet & React-Leaflet for maps (used as a fallback when a Mapbox token
+    isn’t available; OpenStreetMap tiles are shown)
 - Express.js for REST API
 - CORS enabled for cross-origin requests
