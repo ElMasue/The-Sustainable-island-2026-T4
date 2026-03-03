@@ -38,11 +38,14 @@
 
 .bottom-sheet-content {
   flex: 1;
-  overflow: hidden;
+  /* allow vertical scrolling inside the sheet when content is long */
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 0 1rem 1.5rem 1rem;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
 }
 
 .bottom-sheet-content::-webkit-scrollbar {
