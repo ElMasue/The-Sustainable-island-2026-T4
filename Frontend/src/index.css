@@ -19,3 +19,12 @@ body {
   width: 100%;
 }
 
+/* dark mode override */
+body.dark-mode {
+  background: #121212;
+  color: #e0e0e0;
+}
+body.dark-mode .map-container {
+  /* maybe mapbox will handle dark style but fallback to invert background */
+}
+
