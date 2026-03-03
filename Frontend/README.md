@@ -34,6 +34,48 @@ To show the map locally:
 
 For online/preview deployments, leave the token unset so the app doesn’t use your Mapbox quota.
 
+---
+
+### Backend API URL
+
+The frontend needs to know where to contact the backend. It looks at the
+`VITE_API_BASE` environment variable (same location as the map token, i.e. a
+`Frontend/.env.local` file).
+
+- **Option 1 – set the variable**:
+
+  ```bash
+  VITE_API_BASE=http://localhost:3000
+  ```
+
+  Replace `3000` with whatever port your server is running on.
+
+- **Option 2 – rely on the built‑in default**:
+  `Home.tsx` falls back to `http://localhost:3000` when the variable is empty so
+  you can omit it entirely if that’s where your backend lives.
+
+If neither approach is used and you call `/api/…` from the browser, Vite will
+return the app’s own HTML document (hence the “Unexpected token '<'” error).
+To avoid this at development time you can also configure a proxy as shown
+below:
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000'
+    }
+  }
+});
+```
+
+---
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
