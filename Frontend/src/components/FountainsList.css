@@ -5,6 +5,31 @@
   min-height: 0;
 }
 
+/* Desktop improvements */
+@media (min-width: 1024px) {
+  .fountains-list {
+    height: 100%;
+  }
+
+  .fountains-list__header {
+    padding: 1rem 0 1rem 0;
+  }
+
+  .fountains-list__title {
+    font-size: 1.75rem;
+  }
+
+  .fountains-list__subtitle {
+    font-size: 1rem;
+  }
+
+  .fountains-list__items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
 .fountains-list__header {
   flex-shrink: 0;
   padding: 0.5rem 0 0.75rem 0;

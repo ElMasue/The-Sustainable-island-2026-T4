@@ -111,3 +111,40 @@
   color: #bbb;
   flex-shrink: 0;
 }
+
+/* Desktop improvements */
+@media (min-width: 1024px) {
+  .fountain-card {
+    padding: 1rem;
+    margin-bottom: 0;
+    border-radius: 16px;
+  }
+
+  .fountain-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .fountain-card:active {
+    transform: translateY(0);
+  }
+
+  .fountain-card-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+  }
+
+  .fountain-card-title {
+    font-size: 1.05rem;
+  }
+
+  .fountain-category {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .fountain-card-details {
+    font-size: 0.875rem;
+  }
+}

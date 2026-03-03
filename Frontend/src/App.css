@@ -3,4 +3,70 @@
   box-sizing: border-box;
 }
 
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode .fountains-list__header,
+body.dark-mode .bottom-sheet,
+body.dark-mode .profile-menu-header {
+  background: #1a1a1a;
+}
+
+body.dark-mode .fountains-list__title,
+body.dark-mode .fountain-detail-title,
+body.dark-mode .fountain-card-title,
+body.dark-mode .user-name,
+body.dark-mode .settings-title,
+body.dark-mode .section-title,
+body.dark-mode .menu-title {
+  color: #ffffff;
+}
+
+body.dark-mode .fountains-list__subtitle,
+body.dark-mode .fountain-card-details,
+body.dark-mode .section-text,
+body.dark-mode .user-stats,
+body.dark-mode .menu-subtitle {
+  color: #b0b0b0;
+}
+
+body.dark-mode .fountain-card,
+body.dark-mode .menu-item {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+}
+
+body.dark-mode .fountain-card:hover,
+body.dark-mode .menu-item:hover {
+  background: #333333;
+}
+
+body.dark-mode .refill-search-bar,
+body.dark-mode .user-button {
+  background: #2a2a2a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .refill-search-bar__input {
+  color: #e0e0e0;
+}
+
+body.dark-mode .refill-search-bar__input::placeholder {
+  color: #808080;
+}
+
+
 

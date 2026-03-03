@@ -13,6 +13,7 @@ export { default as MenuItem } from './MenuItem';
 export { default as PrimaryButton } from './PrimaryButton';
 export { default as ProfileMenu } from './ProfileMenu';
 export { default as RefillSearchBar } from './RefillSearchBar';
+export { default as SidePanel } from './SidePanel';
 export { default as SignInForm } from './SignInForm';
 export { default as SignUpForm } from './SignUpForm';
 export { default as SocialButtons } from './SocialButtons';
