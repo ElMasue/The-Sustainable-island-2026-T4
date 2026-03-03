@@ -20,12 +20,18 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Water fountains routes (to be implemented)
-app.get('/api/fountains', (req: Request, res: Response) => {
-  res.json({ 
-    message: 'Endpoint to get all fountains',
-    data: []
-  });
+// Water fountains routes (fetch from Supabase)
+import { getWaterSources } from './supabase';
+
+app.get('/api/fountains', async (req: Request, res: Response) => {
+  try {
+    const data = await getWaterSources();
+    console.log('GET /api/fountains ->', data.length, 'rows');
+    res.json(data);
+  } catch (e) {
+    console.error('GET /api/fountains', e);
+    res.status(500).json({ error: 'Failed to fetch fountains' });
+  }
 });
 
 // Start server

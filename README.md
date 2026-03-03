@@ -10,6 +10,8 @@ An interactive map to find water fountains and refill stations, promoting the re
 ## Features
 
 - 📍 Interactive map with water fountain locations
+- 🔐 User menu adjusts items depending on login state (favorites/saved hidden when signed out)
+- ⚙️ Settings screen lets you toggle language (EN/ES) and switch between bright/dark mode
 - 🔍 Search functionality to find nearby stations
 - 📱 Mobile-responsive design
 - ✅ Real-time operational status of fountains
@@ -20,6 +22,21 @@ An interactive map to find water fountains and refill stations, promoting the re
 ```bash
 cd Frontend
 npm install   # installs React, Mapbox, Leaflet etc.
+```
+
+> If the backend runs on a different origin (for example `http://localhost:3000`)
+> you can set an environment variable so the frontend knows where to fetch
+> data:
+>
+> ```ini
+> # Frontend/.env.local
+> VITE_API_BASE=http://localhost:3000
+> ```
+>
+> When the variable is omitted or empty the app will send requests to the same
+> origin (`/api/...`).
+
+```bash
 npm run dev
 ```
 
