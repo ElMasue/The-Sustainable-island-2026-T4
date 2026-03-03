@@ -75,3 +75,42 @@
   font-size: 1.25rem;
   font-weight: 600;
 }
+
+/* Desktop improvements */
+@media (min-width: 1024px) {
+  .profile-menu {
+    height: 100%;
+  }
+
+  .profile-menu-header {
+    padding: 1.5rem 0 1.5rem 0;
+    border-bottom: 2px solid #e5e5e5;
+  }
+
+  .user-avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .user-name {
+    font-size: 1.4rem;
+  }
+
+  .user-stats {
+    font-size: 0.95rem;
+  }
+
+  .profile-menu-content {
+    padding: 1.5rem 0;
+    overflow-y: auto;
+  }
+
+  .settings-header {
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .settings-title {
+    font-size: 1.5rem;
+  }
+}
