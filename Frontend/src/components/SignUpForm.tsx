@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import AuthFormFooter from './AuthFormFooter';
 import './SignUpForm.css';
 import AuthPageLayout from './AuthPageLayout';
@@ -13,10 +14,14 @@ function SignUpForm() {
   const [email, setEmail] = useState('');
   const navigate = useNavigate();
 
+  const { login } = useAuth();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement sign up logic
+    // pretend registration succeeded
     console.log('Sign up:', { name, email });
+    login();
+    navigate('/');
   };
 
   const handleSocialLogin = (provider: 'google' | 'apple' | 'facebook') => {

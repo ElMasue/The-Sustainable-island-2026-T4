@@ -57,3 +57,21 @@
   padding: 1rem 1.5rem;
   overflow: hidden;
 }
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.settings-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
