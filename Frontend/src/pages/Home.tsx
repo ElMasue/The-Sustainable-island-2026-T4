@@ -135,8 +135,8 @@ function Home() {
       <button
         className="panel-toggle-btn"
         onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
-        aria-label={isPanelCollapsed ? 'Show panel' : 'Hide panel'}
-        title={isPanelCollapsed ? 'Show panel' : 'Hide panel'}
+        aria-label={isPanelCollapsed ? 'Expand side panel' : 'Collapse side panel'}
+        title={isPanelCollapsed ? 'Expand side panel' : 'Collapse side panel'}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           {isPanelCollapsed ? (
