@@ -36,10 +36,6 @@ function SignUpForm() {
     }
   };
 
-  const handleSocialLogin = (provider: 'google' | 'apple' | 'facebook') => {
-    // TODO: Implement social login
-    console.log('Sign up with:', provider);
-  };
 
   return (
     <AuthPageLayout title="Sign Up" backTo="/">
@@ -81,7 +77,7 @@ function SignUpForm() {
 
         <Divider />
 
-        <SocialButtons onSocialLogin={handleSocialLogin} />
+        <SocialButtons />
       </form>
     </AuthPageLayout>
   );

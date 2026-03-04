@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { Session, User } from '@supabase/supabase-js';
+import type { Session, User, AuthResponse } from '@supabase/supabase-js';
 import { supabase } from '../supabaseClient';
 
 interface AuthContextValue {
@@ -7,12 +7,17 @@ interface AuthContextValue {
   session: Session | null;
   isLoggedIn: boolean;
   fullName: string | null;
+  avatarUrl: string | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<AuthResponse>;
+  /** OAuth login with Google or Apple – redirects the browser */
+  signInWithSocial: (provider: 'google' | 'apple') => Promise<void>;
   signOut: () => Promise<void>;
   logout: () => Promise<void>;
   /** Update display name in Auth and public.users */
   updateProfile: (displayName: string) => Promise<void>;
+  /** Upload a new avatar image (email users only). Returns the public URL. */
+  uploadAvatar: (file: File) => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -88,6 +93,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const signInWithSocial = async (provider: 'google' | 'apple') => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        // After OAuth the browser is redirected back to the app root
+        redirectTo: window.location.origin + '/',
+      },
+    });
+    if (error) throw error;
+  };
+
   const updateProfile = async (displayName: string) => {
     const { error } = await supabase.auth.updateUser({
       data: { full_name: displayName, display_name: displayName },
@@ -104,6 +120,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const uploadAvatar = async (file: File): Promise<string> => {
+    if (!user) throw new Error('Not authenticated');
+    // Unique path per user so overwrites are clean
+    const ext = file.name.split('.').pop() ?? 'jpg';
+    const path = `${user.id}/avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (uploadError) throw uploadError;
+
+    // getPublicUrl is synchronous and never throws
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(path);
+    // Append a cache-busting timestamp so re-uploads always show the new image
+    const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+    // Save the URL into auth metadata so avatarUrl updates immediately
+    const { error: metaError } = await supabase.auth.updateUser({
+      data: { avatar_url: publicUrl },
+    });
+    if (metaError) throw metaError;
+
+    // Also sync to public.users if the table has an avatar_url column
+    if (user) {
+      await supabase
+        .from('users')
+        .upsert({ id: user.id, email: user.email, avatar_url: publicUrl })
+        .then(({ error: e }) => {
+          if (e) console.warn('avatar upsert to users table skipped:', e.message);
+        });
+    }
+
+    return publicUrl;
+  };
+
   const isLoggedIn = !!user;
   // Prefer display_name (Auth dashboard field) → full_name → email as fallback
   const fullName =
@@ -111,9 +164,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user?.user_metadata?.full_name ??
     user?.email ??
     null;
+  // Google stores it as avatar_url; some providers use picture
+  const avatarUrl: string | null =
+    user?.user_metadata?.avatar_url ??
+    user?.user_metadata?.picture ??
+    null;
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoggedIn, fullName, signIn, signUp, signOut, logout: signOut, updateProfile }}>
+    <AuthContext.Provider value={{ user, session, isLoggedIn, fullName, avatarUrl, signIn, signUp, signInWithSocial, signOut, logout: signOut, updateProfile, uploadAvatar }}>
       {children}
     </AuthContext.Provider>
   );
