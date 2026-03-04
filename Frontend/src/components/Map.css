@@ -40,3 +40,109 @@
   }
 
 }
+
+/* ── User Location Icon ── */
+.user-marker-container {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-direction-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  opacity: 0;
+  transition: transform 0.1s linear;
+  will-change: transform;
+}
+
+.user-location-outer {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background-color: rgba(74, 144, 226, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s infinite;
+}
+
+.user-location-inner {
+  width: 12px;
+  height: 12px;
+  background-color: #4A90E2;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.6);
+  }
+
+  70% {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 10px rgba(74, 144, 226, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(74, 144, 226, 0);
+  }
+}
+
+/* ── Locate Me Button ── */
+.map-locate-btn {
+  position: absolute;
+  bottom: 24px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.2s;
+}
+
+.map-locate-btn:hover {
+  background: #f8f9fa;
+  color: #333;
+}
+
+.map-locate-btn--active {
+  color: #4A90E2;
+}
+
+.map-locate-btn--denied {
+  color: #e74c3c;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Adjust button position on mobile to avoid bottom sheet */
+@media (max-width: 768px) {
+  .map-locate-btn {
+    bottom: 96px;
+    /* Above bottom sheet */
+  }
+
+  .accuracy-circle {
+    display: none;
+  }
+}
