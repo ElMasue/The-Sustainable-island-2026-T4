@@ -29,10 +29,6 @@ function SignInForm() {
     }
   };
 
-  const handleSocialLogin = (provider: 'google' | 'apple' | 'facebook') => {
-    // TODO: Implement social login
-    console.log('Login with:', provider);
-  };
 
   return (
     <AuthPageLayout title="Sign In" backTo="/">
@@ -64,7 +60,7 @@ function SignInForm() {
 
         <Divider />
 
-        <SocialButtons onSocialLogin={handleSocialLogin} />
+        <SocialButtons />
       </form>
     </AuthPageLayout>
   );
