@@ -41,9 +41,74 @@
   color: #1a1a1a;
 }
 
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.name-edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #888;
+  padding: 0 0.2rem;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.name-edit-btn:hover {
+  color: #333;
+}
+
+.user-name-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.25rem;
+}
+
+.user-name-input {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  outline: none;
+}
+
+.user-name-input:focus {
+  border-color: #4caf50;
+}
+
+.name-save-btn,
+.name-cancel-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 0.2rem;
+}
+
+.name-save-btn {
+  color: #4caf50;
+}
+
+.name-cancel-btn {
+  color: #e53935;
+}
+
+
 .user-stats {
   font-size: 0.875rem;
   color: #666;
+}
+
+.user-email {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0 0 0.2rem 0;
 }
 
 .user-stats span {

@@ -11,9 +11,12 @@ interface ProfileMenuProps {
 
 function ProfileMenu({ onClose }: ProfileMenuProps) {
   const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout, fullName, user, updateProfile } = useAuth();
   const { language, darkMode, toggleLanguage, toggleDarkMode } = useAppSettings();
   const [showSettings, setShowSettings] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [savingName, setSavingName] = useState(false);
 
   const handleAuthClick = () => {
     if (isLoggedIn) {
@@ -22,6 +25,19 @@ function ProfileMenu({ onClose }: ProfileMenuProps) {
     } else {
       navigate('/signup');
       onClose?.();
+    }
+  };
+
+  const handleSaveName = async () => {
+    if (!nameInput.trim()) return;
+    setSavingName(true);
+    try {
+      await updateProfile(nameInput.trim());
+      setEditingName(false);
+    } catch (err) {
+      console.error('Failed to update profile', err);
+    } finally {
+      setSavingName(false);
     }
   };
 
@@ -44,7 +60,38 @@ function ProfileMenu({ onClose }: ProfileMenuProps) {
               </svg>
             </div>
             <div className="user-info">
-              <h2 className="user-name">User</h2>
+              {editingName ? (
+                <div className="user-name-edit">
+                  <input
+                    className="user-name-input"
+                    autoFocus
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false); }}
+                    placeholder="Full name"
+                  />
+                  <button className="name-save-btn" onClick={handleSaveName} disabled={savingName}>
+                    {savingName ? '…' : '✓'}
+                  </button>
+                  <button className="name-cancel-btn" onClick={() => setEditingName(false)}>✕</button>
+                </div>
+              ) : (
+                <div className="user-name-row">
+                  <h2 className="user-name">{fullName ?? (isLoggedIn ? user?.email : 'Guest')}</h2>
+                  {isLoggedIn && (
+                    <button
+                      className="name-edit-btn"
+                      title="Edit name"
+                      onClick={() => { setNameInput(fullName ?? ''); setEditingName(true); }}
+                    >
+                      ✎
+                    </button>
+                  )}
+                </div>
+              )}
+              {isLoggedIn && user?.email && fullName && (
+                <p className="user-email">{user.email}</p>
+              )}
               <div className="user-stats">
                 <span>★ 100 Refills</span>
               </div>
