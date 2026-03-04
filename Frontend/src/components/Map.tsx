@@ -1,33 +1,39 @@
 import { useRef, useEffect } from 'react';
-// Mapbox for the primary implementation
-import MapboxMap, { Marker, Popup } from 'react-map-gl/mapbox';
-import type { MapRef } from 'react-map-gl/mapbox';
-
-// Leaflet for fallback when the Mapbox token is missing
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import type { Fountain } from '../types/fountain';
 import userPinIcon from '../assets/icons/UserPin.svg';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import './Map.css';
 
-// simple wrapper that initializes a Leaflet map into a div. used when
-// there is no Mapbox token so we can use OpenStreetMap tiles instead.
-interface LeafletMapProps {
+interface MapProps {
   fountains: Fountain[];
-  center: [number, number];
-  zoom: number;
+  center?: [number, number];
+  zoom?: number;
+  selectedFountain?: Fountain | null;
   onMapClick?: () => void;
 }
 
-function LeafletMap({ fountains, center, zoom, onMapClick }: LeafletMapProps) {
+// [latitude, longitude] to match rest of app
+const DEFAULT_CENTER: [number, number] = [28.1235, -15.4363];
+const DEFAULT_ZOOM = 13;
+
+function Map({
+  fountains,
+  center = DEFAULT_CENTER,
+  zoom = DEFAULT_ZOOM,
+  selectedFountain,
+  onMapClick,
+}: MapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const map = L.map(containerRef.current).setView([center[0], center[1]], zoom);
+    mapInstanceRef.current = map;
+    
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
     }).addTo(map);
@@ -57,122 +63,25 @@ function LeafletMap({ fountains, center, zoom, onMapClick }: LeafletMapProps) {
     });
 
     return () => {
+      mapInstanceRef.current = null;
       map.remove();
     };
   }, [fountains, center, zoom, onMapClick]);
 
-  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
-}
-
-// Set only in .env.local (never commit). Leave unset in deployed previews to avoid using quota.
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-
-interface MapProps {
-  fountains: Fountain[];
-  center?: [number, number];
-  zoom?: number;
-  selectedFountain?: Fountain | null;
-  onMapClick?: () => void;
-}
-
-// [latitude, longitude] to match rest of app
-const DEFAULT_CENTER: [number, number] = [28.1235, -15.4363];
-const DEFAULT_ZOOM = 13;
-
-function Map({
-  fountains,
-  center = DEFAULT_CENTER,
-  zoom = DEFAULT_ZOOM,
-  selectedFountain,
-  onMapClick,
-}: MapProps) {
-  const mapRef = useRef<MapRef>(null);
-
+  // Handle selected fountain changes
   useEffect(() => {
-    if (selectedFountain && mapRef.current) {
-      mapRef.current.flyTo({
-        center: [selectedFountain.longitude, selectedFountain.latitude],
-        zoom: 16,
-        duration: 1500,
-      });
+    if (selectedFountain && mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo(
+        [selectedFountain.latitude, selectedFountain.longitude],
+        16,
+        { duration: 1.5 }
+      );
     }
   }, [selectedFountain]);
 
-  const [lat, lng] = center;
-
-  if (!MAPBOX_TOKEN || MAPBOX_TOKEN === 'your_token_here') {
-    // No Mapbox token – render an OpenStreetMap/Leaflet map instead.
-    // This keeps the app usable in previews or when the token is intentionally omitted.
-    // LeafletMap component handles its own initialization; we just pass props.
-    return (
-      <div className="map-container">
-        <LeafletMap
-          fountains={fountains}
-          center={[lat, lng]}
-          zoom={zoom}
-          onMapClick={onMapClick}
-        />
-        <div className="map-container--error">
-          <p className="map-container--error-title">
-            Mapbox token missing – using OpenStreetMap
-          </p>
-          <p>
-            The app detected that no Mapbox access token was configured. An
-            OpenStreetMap map is shown instead; you can still add a token later
-            in <code>.env.local</code> to restore Mapbox.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="map-container">
-      <MapboxMap
-        ref={mapRef}
-        mapboxAccessToken={MAPBOX_TOKEN}
-        initialViewState={{
-          longitude: lng,
-          latitude: lat,
-          zoom,
-        }}
-        style={{ width: '100%', height: '100%' }}
-        mapStyle="mapbox://styles/mapbox/standard"
-        onLoad={(e) => {
-          const map = e.target;
-          if (typeof map.setConfigProperty === 'function') {
-            map.setConfigProperty('basemap', 'theme', 'faded');
-            map.setConfigProperty('basemap', 'lightPreset', 'night');
-          }
-        }}
-        onClick={() => onMapClick?.()}
-      >
-        {fountains.map((fountain) => (
-          <Marker
-            key={fountain.id}
-            longitude={fountain.longitude}
-            latitude={fountain.latitude}
-            anchor="bottom"
-          >
-            <img src={userPinIcon} alt="" className="map-marker-icon" />
-            <Popup
-              longitude={fountain.longitude}
-              latitude={fountain.latitude}
-              anchor="bottom"
-              closeButton
-              closeOnClick={false}
-            >
-              <div className="fountain-popup">
-                <h3>{fountain.name}</h3>
-                {fountain.description && <p>{fountain.description}</p>}
-                <span className={fountain.isOperational ? 'status-active' : 'status-inactive'}>
-                  {fountain.isOperational ? '✓ Operational' : '✗ Not operational'}
-                </span>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapboxMap>
+      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
     </div>
   );
 }
