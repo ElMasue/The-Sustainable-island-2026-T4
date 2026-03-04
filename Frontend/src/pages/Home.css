@@ -84,15 +84,8 @@
     background: #e5e5e5;
   }
 
-  /* Adjust map to account for side panel */
+  /* Map stays fixed in the background */
   .home .map-container {
-    left: 420px;
-    width: calc(100% - 420px);
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .home.home--panel-collapsed .map-container {
     left: 0;
     width: 100%;
   }
@@ -104,13 +97,13 @@
     left: 420px;
     top: 50%;
     transform: translateY(-50%);
-    width: 56px;
-    height: 56px;
+    width: 32px;
+    height: 64px;
     align-items: center;
     justify-content: center;
     background: white;
     border: none;
-    border-radius: 50%;
+    border-radius: 0 100% 100% 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     z-index: 1001;
@@ -131,7 +124,7 @@
   }
 
   .home.home--panel-collapsed .panel-toggle-btn {
-    left: 16px;
+    left: 0;
   }
 
   /* Hide bottom sheet on desktop */
@@ -142,23 +135,16 @@
 
 /* Extra large screens */
 @media (min-width: 1440px) {
-  .home .map-container {
-    left: 480px;
-    width: calc(100% - 480px);
-  }
-
-  .home.home--panel-collapsed .map-container {
-    left: 0;
-    width: 100%;
-  }
 
   .panel-toggle-btn {
     left: 480px;
+    width: 36px;
+    height: 72px;
   }
 
-  .home.home--panel-collapsed .panel-toggle-btn {
-    left: 16px;
-  }
+  /* .home.home--panel-collapsed .panel-toggle-btn {
+    left: 0;
+  } */
 }
 
 /* Dark mode support */
