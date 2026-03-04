@@ -28,7 +28,62 @@
   justify-content: center;
   color: #666;
   flex-shrink: 0;
+  overflow: hidden;
 }
+
+.user-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Editable avatar (email users) */
+.user-avatar--editable {
+  cursor: pointer;
+  position: relative;
+}
+
+.user-avatar--editable:hover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.avatar-camera-overlay {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.avatar-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(0, 0, 0, 0.15);
+  border-top-color: #555;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.avatar-error {
+  font-size: 0.75rem;
+  color: #e53935;
+  margin: 0.25rem 0 0;
+  text-align: center;
+}
+
 
 .user-info {
   flex: 1;

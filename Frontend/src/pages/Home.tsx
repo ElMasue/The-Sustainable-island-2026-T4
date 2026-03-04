@@ -9,13 +9,14 @@ import {
   SidePanel,
   UserButton,
 } from '../components';
-// remove mock data import – real data will be fetched from backend
 import type { Fountain } from '../types/fountain';
+import { useAuth } from '../context/AuthContext';
 import './Home.css';
 
 type SheetContent = 'list' | 'detail' | 'profile';
 
 function Home() {
+  const { avatarUrl } = useAuth();
   const [fountains, setFountains] = useState<Fountain[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFountain, setSelectedFountain] = useState<Fountain | null>(null);
@@ -98,7 +99,7 @@ function Home() {
       {/* Mobile: Search bar and user button floating on map */}
       <div className="home__mobile-header">
         <RefillSearchBar value={searchQuery} onChange={setSearchQuery} />
-        <UserButton onClick={handleUserClick} />
+        <UserButton onClick={handleUserClick} avatarUrl={avatarUrl} />
       </div>
 
       {/* Desktop: Side panel with search, user button, and content */}
@@ -106,7 +107,7 @@ function Home() {
         <div className="home__desktop-header">
           <div className="home__desktop-header-top">
             <h1 className="home__desktop-title">Refill</h1>
-            <UserButton onClick={handleUserClick} />
+            <UserButton onClick={handleUserClick} avatarUrl={avatarUrl} />
           </div>
           <RefillSearchBar value={searchQuery} onChange={setSearchQuery} />
         </div>

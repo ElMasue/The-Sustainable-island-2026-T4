@@ -3,7 +3,7 @@ import { MenuItem } from './';
 import './ProfileMenu.css';
 import { useAuth } from '../context/AuthContext';
 import { useAppSettings } from '../context/AppSettingsContext';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface ProfileMenuProps {
   onClose?: () => void;
@@ -11,12 +11,18 @@ interface ProfileMenuProps {
 
 function ProfileMenu({ onClose }: ProfileMenuProps) {
   const navigate = useNavigate();
-  const { isLoggedIn, logout, fullName, user, updateProfile } = useAuth();
+  const { isLoggedIn, logout, fullName, user, updateProfile, avatarUrl, uploadAvatar } = useAuth();
   const { language, darkMode, toggleLanguage, toggleDarkMode } = useAppSettings();
   const [showSettings, setShowSettings] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [savingName, setSavingName] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Email users can change their avatar; OAuth users (Google/Apple) keep their provider photo
+  const isEmailUser = user?.app_metadata?.provider === 'email';
 
   const handleAuthClick = () => {
     if (isLoggedIn) {
@@ -41,6 +47,32 @@ function ProfileMenu({ onClose }: ProfileMenuProps) {
     }
   };
 
+  const handleAvatarClick = () => {
+    if (isEmailUser && !uploadingAvatar) fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Max 5 MB guard
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarError('Image must be under 5 MB');
+      return;
+    }
+    setAvatarError(null);
+    setUploadingAvatar(true);
+    try {
+      await uploadAvatar(file);
+    } catch (err: any) {
+      console.error('Avatar upload failed', err);
+      setAvatarError(err.message || 'Upload failed');
+    } finally {
+      setUploadingAvatar(false);
+      // Reset so same file can be picked again
+      e.target.value = '';
+    }
+  };
+
   const openSettings = () => setShowSettings(true);
   const backToMenu = () => setShowSettings(false);
   return (
@@ -53,12 +85,37 @@ function ProfileMenu({ onClose }: ProfileMenuProps) {
           </div>
         ) : (
           <div className="profile-user-section">
-            <div className="user-avatar">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
+            <div
+              className={`user-avatar${isEmailUser ? ' user-avatar--editable' : ''}`}
+              onClick={handleAvatarClick}
+              title={isEmailUser ? 'Click to change photo' : undefined}
+            >
+              {uploadingAvatar ? (
+                <span className="avatar-spinner" />
+              ) : avatarUrl ? (
+                <img src={avatarUrl} alt="Profile" className="user-avatar__img" referrerPolicy="no-referrer" />
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              )}
+              {isEmailUser && !uploadingAvatar && (
+                <span className="avatar-camera-overlay" aria-hidden>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 15.2A3.2 3.2 0 1 1 12 8.8a3.2 3.2 0 0 1 0 6.4zm7-11.2h-2.618l-1.256-1.88A1 1 0 0 0 14.268 2H9.732a1 1 0 0 0-.858.485L7.618 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+                  </svg>
+                </span>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                style={{ display: 'none' }}
+                onChange={handleAvatarChange}
+              />
             </div>
+            {avatarError && <p className="avatar-error">{avatarError}</p>}
             <div className="user-info">
               {editingName ? (
                 <div className="user-name-edit">
