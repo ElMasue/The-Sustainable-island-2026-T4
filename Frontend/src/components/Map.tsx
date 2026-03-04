@@ -27,9 +27,11 @@ function Map({
 }: MapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.Marker[]>([]);
 
+  // Initialize map only once
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || mapInstanceRef.current) return;
 
     const map = L.map(containerRef.current).setView([center[0], center[1]], zoom);
     mapInstanceRef.current = map;
@@ -38,6 +40,24 @@ function Map({
       attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
     }).addTo(map);
 
+    map.on('click', () => {
+      onMapClick?.();
+    });
+
+    return () => {
+      mapInstanceRef.current = null;
+      map.remove();
+    };
+  }, []); // Only run once
+
+  // Update markers when fountains change
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    // Remove old markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
     const fountainIcon = new L.Icon({
       iconUrl: userPinIcon,
       iconSize: [30, 30],
@@ -45,7 +65,7 @@ function Map({
     });
 
     fountains.forEach((f) => {
-      const marker = L.marker([f.latitude, f.longitude], { icon: fountainIcon }).addTo(map);
+      const marker = L.marker([f.latitude, f.longitude], { icon: fountainIcon }).addTo(mapInstanceRef.current!);
       const popupHtml = `
         <div class="fountain-popup">
           <h3>${f.name}</h3>
@@ -56,17 +76,9 @@ function Map({
         </div>
       `;
       marker.bindPopup(popupHtml, { closeOnClick: false, autoClose: false });
+      markersRef.current.push(marker);
     });
-
-    map.on('click', () => {
-      onMapClick?.();
-    });
-
-    return () => {
-      mapInstanceRef.current = null;
-      map.remove();
-    };
-  }, [fountains, center, zoom, onMapClick]);
+  }, [fountains]);
 
   // Handle selected fountain changes
   useEffect(() => {
