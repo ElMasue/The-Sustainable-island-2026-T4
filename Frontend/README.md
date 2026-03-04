@@ -59,6 +59,29 @@ return the app’s own HTML document (hence the “Unexpected token '<'” error
 To avoid this at development time you can also configure a proxy as shown
 below:
 
+---
+
+### Supabase authentication and users
+
+The frontend uses Supabase for user registration and login. You must provide
+an **anon** key and the project URL in the same `.env.local` file used above:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…
+```
+
+These environment variables are consumed by `src/supabaseClient.ts` which
+creates the client used by `AuthContext`.  Once configured the sign‑in/​sign‑up
+forms call `supabase.auth` directly and the context also upserts a row into the
+`users` table you created (so the backend has a copy of each user).  No secret
+key is ever shipped to the browser; the anon key is safe to publish.
+
+If you enable Google, Apple or other providers in the Supabase dashboard, the
+same credentials support them automatically.
+
+---
+
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite';

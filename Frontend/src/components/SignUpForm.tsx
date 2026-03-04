@@ -12,16 +12,28 @@ import SocialButtons from './SocialButtons';
 function SignUpForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const { login } = useAuth();
+  const { signUp } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // pretend registration succeeded
-    console.log('Sign up:', { name, email });
-    login();
-    navigate('/');
+    setError(null);
+    try {
+      const res = await signUp(email, password, name);
+      if (!res.data.session) {
+        // no session means user must confirm email before logging in
+        setError('¡Registro recibido! Comprueba tu correo para activar la cuenta.');
+        return;
+      }
+      // profile upsert happens in context automatically once session exists
+      navigate('/');
+    } catch (err: any) {
+      console.error('sign up failed', err);
+      setError(err.message || 'Unable to register');
+    }
   };
 
   const handleSocialLogin = (provider: 'google' | 'apple' | 'facebook') => {
@@ -49,6 +61,15 @@ function SignUpForm() {
           onChange={setEmail}
           required
         />
+        <FormInput
+          label="Password"
+          type="password"
+          placeholder="Enter password"
+          value={password}
+          onChange={setPassword}
+          required
+        />
+        {error && <p className="auth-error">{error}</p>}
 
         <PrimaryButton type="submit">Continue</PrimaryButton>
 
