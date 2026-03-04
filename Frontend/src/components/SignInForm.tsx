@@ -11,16 +11,22 @@ import SocialButtons from './SocialButtons';
 
 function SignInForm() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const { login } = useAuth();
+  const { signIn } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // pretend we authenticated successfully
-    console.log('Email:', email);
-    login();
-    navigate('/');
+    setError(null);
+    try {
+      await signIn(email, password);
+      navigate('/');
+    } catch (err: any) {
+      console.error('sign in failed', err);
+      setError(err.message || 'Unable to sign in');
+    }
   };
 
   const handleSocialLogin = (provider: 'google' | 'apple' | 'facebook') => {
@@ -39,8 +45,16 @@ function SignInForm() {
           onChange={setEmail}
           required
         />
-
+        <FormInput
+          label="Password"
+          type="password"
+          placeholder="Enter password"
+          value={password}
+          onChange={setPassword}
+          required
+        />
         <PrimaryButton type="submit">Continue</PrimaryButton>
+        {error && <p className="auth-error">{error}</p>}
 
         <AuthFormFooter
           text="Don't have an account?"
