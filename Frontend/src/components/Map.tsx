@@ -60,7 +60,6 @@ function Map({
 }: MapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
-
   // Refs for user-location layer so we can update without rebuilding the map
   const userMarkerRef = useRef<L.Marker | null>(null);
   const accuracyCircleRef = useRef<L.Circle | null>(null);
@@ -72,8 +71,7 @@ function Map({
 
   // ── Build / tear-down the map (runs ONCE) ─────────────────────────
   useEffect(() => {
-    if (!containerRef.current) return;
-    if (mapInstanceRef.current) return;
+    if (!containerRef.current || mapInstanceRef.current) return;
 
     const map = L.map(containerRef.current, {
       preferCanvas: false // Force SVG so our classNames work on circles
@@ -87,12 +85,14 @@ function Map({
 
     fountainsLayerRef.current = L.layerGroup().addTo(map);
 
-    map.on('click', () => onMapClick?.());
+    map.on('click', () => {
+      onMapClick?.();
+    });
 
     return () => {
-      map.remove();
       mapInstanceRef.current = null;
       fountainsLayerRef.current = null;
+      map.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

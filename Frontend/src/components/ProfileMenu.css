@@ -223,6 +223,12 @@
   .profile-menu-content {
     padding: 1.5rem 0;
     overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+
+  .profile-menu-content::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
   }
 
   .settings-header {
