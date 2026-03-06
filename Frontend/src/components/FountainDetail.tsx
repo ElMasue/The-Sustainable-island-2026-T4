@@ -56,24 +56,29 @@ function FountainDetail({ fountain }: FountainDetailProps) {
         )}
 
         <div className="fountain-detail-section">
-          <h3 className="section-title">How would you rate the water?</h3>
-          <p className="section-subtitle">We'd love to know!</p>
+          <h3 className="section-title">Rate the water quality</h3>
+          <p className="section-subtitle">Your feedback helps us improve the water quality.</p>
           
           <div className="rating-emojis">
-            <button className="emoji-button" aria-label="Very bad">
-              😖
-            </button>
             <button className="emoji-button" aria-label="Bad">
-              😕
+              <span className="emoji">😡</span>
+              <span className="emoji-label">Bad</span>
             </button>
-            <button className="emoji-button" aria-label="Neutral">
-              😐
+            <button className="emoji-button" aria-label="Poor">
+              <span className="emoji">😕</span>
+              <span className="emoji-label">Poor</span>
+            </button>
+            <button className="emoji-button" aria-label="OK">
+              <span className="emoji">😐</span>
+              <span className="emoji-label">OK</span>
             </button>
             <button className="emoji-button" aria-label="Good">
-              🙂
+              <span className="emoji">🙂</span>
+              <span className="emoji-label">Good</span>
             </button>
             <button className="emoji-button" aria-label="Excellent">
-              😍
+              <span className="emoji">😍</span>
+              <span className="emoji-label">Excellent</span>
             </button>
           </div>
         </div>
