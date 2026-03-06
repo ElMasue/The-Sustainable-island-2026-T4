@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import type { Fountain } from '../types/fountain';
+import { useTranslation } from '../i18n';
 import userPinIcon from '../assets/icons/UserPin.svg';
 import './Map.css';
 
@@ -58,6 +59,7 @@ function Map({
   selectedFountain,
   onMapClick,
 }: MapProps) {
+  const t = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   // Refs for user-location layer so we can update without rebuilding the map
@@ -117,14 +119,14 @@ function Map({
           <h3>${f.name}</h3>
           ${f.description ? `<p>${f.description}</p>` : ''}
           <span class="${f.isOperational ? 'status-active' : 'status-inactive'}">
-            ${f.isOperational ? '✓ Operational' : '✗ Not operational'}
+            ${f.isOperational ? `✓ ${t.operational}` : `✗ ${t.notOperational}`}
           </span>
         </div>
       `;
       marker.bindPopup(popupHtml, { closeOnClick: false, autoClose: false });
       layer.addLayer(marker);
     });
-  }, [fountains]);
+  }, [fountains, t]);
 
   // ── Update user-location layer when position changes ──────────
   useEffect(() => {
@@ -304,12 +306,12 @@ function Map({
         onClick={handleLocateClick}
         title={
           geoStatus === 'denied'
-            ? 'Location permission denied'
+            ? t.locationDenied
             : geoStatus === 'watching'
-            ? 'Go to my location'
-            : 'Enable location'
+            ? t.goToMyLocation
+            : t.enableLocation
         }
-        aria-label="Go to my location"
+        aria-label={t.goToMyLocation}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="3" />

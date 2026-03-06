@@ -1,4 +1,5 @@
 import type { Fountain } from '../types/fountain';
+import { useTranslation } from '../i18n';
 import './FountainCard.css';
 
 interface FountainCardProps {
@@ -8,6 +9,7 @@ interface FountainCardProps {
 }
 
 function FountainCard({ fountain, onClick, showImage = true }: FountainCardProps) {
+  const t = useTranslation();
   return (
     <button className="fountain-card" onClick={onClick}>
       {showImage && (
@@ -35,7 +37,7 @@ function FountainCard({ fountain, onClick, showImage = true }: FountainCardProps
             <span className="fountain-distance">{fountain.distance}</span>
           )}
           {fountain.isFree !== undefined && (
-            <span className="fountain-price">{fountain.isFree ? 'Free' : 'Paid'}</span>
+            <span className="fountain-price">{fountain.isFree ? t.free : t.paid}</span>
           )}
         </div>
         {fountain.rating !== undefined && (

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from '../i18n';
 import './SocialButtons.css';
 
 function SocialButtons() {
   const { signInWithSocial } = useAuth();
+  const t = useTranslation();
   const [loadingProvider, setLoadingProvider] = useState<'google' | 'apple' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +32,7 @@ function SocialButtons() {
         className="social-button"
         onClick={() => handleSocial('google')}
         disabled={!!loadingProvider}
-        aria-label="Sign in with Google"
+        aria-label={t.signInWithGoogle}
       >
         {loadingProvider === 'google' ? (
           <span className="social-spinner" />
@@ -51,7 +53,7 @@ function SocialButtons() {
         className="social-button social-button--apple"
         onClick={() => handleSocial('apple')}
         disabled={!!loadingProvider}
-        aria-label="Sign in with Apple"
+        aria-label={t.signInWithApple}
       >
         {loadingProvider === 'apple' ? (
           <span className="social-spinner social-spinner--white" />
