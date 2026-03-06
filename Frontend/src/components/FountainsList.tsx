@@ -1,4 +1,5 @@
 import type { Fountain } from '../types/fountain';
+import { useTranslation } from '../i18n';
 import FountainCard from './FountainCard';
 import './FountainsList.css';
 
@@ -11,15 +12,17 @@ export type FountainsListProps = {
 
 function FountainsList({
   fountains,
-  title = 'Closest Fountains',
-  subtitle = 'Find the closest water fountains',
+  title,
+  subtitle,
   onFountainClick,
 }: FountainsListProps) {
+  const t = useTranslation();
+  
   return (
     <div className="fountains-list">
       <div className="fountains-list__header">
-        <h2 className="fountains-list__title">{title}</h2>
-        <p className="fountains-list__subtitle">{subtitle}</p>
+        <h2 className="fountains-list__title">{title || t.closestFountains}</h2>
+        <p className="fountains-list__subtitle">{subtitle || t.findClosestFountains}</p>
       </div>
       <div className="fountains-list__items">
         {fountains.map((fountain) => (

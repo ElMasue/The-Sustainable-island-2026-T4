@@ -1,4 +1,8 @@
+import { useState, useEffect } from 'react';
 import type { Fountain } from '../types/fountain';
+import { useTranslation } from '../i18n';
+import { useAppSettings } from '../context/AppSettingsContext';
+import { translateText } from '../services/translationService';
 import './FountainDetail.css';
 
 interface FountainDetailProps {
@@ -6,6 +10,32 @@ interface FountainDetailProps {
 }
 
 function FountainDetail({ fountain }: FountainDetailProps) {
+  const t = useTranslation();
+  const { language } = useAppSettings();
+  const [translatedDescription, setTranslatedDescription] = useState(fountain.description || '');
+  
+  useEffect(() => {
+    const translateDescription = async () => {
+      if (!fountain.description) return;
+      
+      // Si el idioma es inglés, usar la descripción original
+      if (language === 'en') {
+        setTranslatedDescription(fountain.description);
+        return;
+      }
+      
+      try {
+        const translated = await translateText(fountain.description, language, 'en');
+        setTranslatedDescription(translated);
+      } catch (error) {
+        console.error('Translation failed:', error);
+        setTranslatedDescription(fountain.description); // Fallback al original
+      }
+    };
+    
+    translateDescription();
+  }, [fountain.description, language]);
+  
   return (
     <div className="fountain-detail">
       <div className="fountain-detail-header">
@@ -31,7 +61,7 @@ function FountainDetail({ fountain }: FountainDetailProps) {
           )}
         </div>
 
-        <div className="fountain-detail-meta">
+        <div className="fountain-detail-meta">t.free : t.paid
           {fountain.isFree !== undefined && (
             <span className="meta-badge">{fountain.isFree ? 'Free' : 'Paid'}</span>
           )}
@@ -56,43 +86,43 @@ function FountainDetail({ fountain }: FountainDetailProps) {
         )}
 
         <div className="fountain-detail-section">
-          <h3 className="section-title">Rate the water quality</h3>
-          <p className="section-subtitle">Your feedback helps us improve the water quality.</p>
+          <h3 className="section-title">{t.rateWaterQuality}</h3>
+          <p className="section-subtitle">{t.rateWaterQualitySubtitle}</p>
           
           <div className="rating-emojis">
-            <button className="emoji-button" aria-label="Bad">
+            <button className="emoji-button" aria-label={t.ratingBad}>
               <span className="emoji">😡</span>
-              <span className="emoji-label">Bad</span>
+              <span className="emoji-label">{t.ratingBad}</span>
             </button>
-            <button className="emoji-button" aria-label="Poor">
+            <button className="emoji-button" aria-label={t.ratingPoor}>
               <span className="emoji">😕</span>
-              <span className="emoji-label">Poor</span>
+              <span className="emoji-label">{t.ratingPoor}</span>
             </button>
-            <button className="emoji-button" aria-label="OK">
+            <button className="emoji-button" aria-label={t.ratingOk}>
               <span className="emoji">😐</span>
-              <span className="emoji-label">OK</span>
+              <span className="emoji-label">{t.ratingOk}</span>
             </button>
-            <button className="emoji-button" aria-label="Good">
+            <button className="emoji-button" aria-label={t.ratingGood}>
               <span className="emoji">🙂</span>
-              <span className="emoji-label">Good</span>
+              <span className="emoji-label">{t.ratingGood}</span>
             </button>
-            <button className="emoji-button" aria-label="Excellent">
+            <button className="emoji-button" aria-label={t.ratingExcellent}>
               <span className="emoji">😍</span>
-              <span className="emoji-label">Excellent</span>
+              <span className="emoji-label">{t.ratingExcellent}</span>
             </button>
           </div>
         </div>
 
         {fountain.description && (
           <div className="fountain-detail-section">
-            <h3 className="section-title">Description</h3>
-            <p className="section-text">{fountain.description}</p>
+            <h3 className="section-title">{t.description}</h3>
+            <p className="section-text">{translatedDescription}</p>
           </div>
         )}
 
         {fountain.distance && (
           <div className="fountain-detail-section">
-            <h3 className="section-title">Distance</h3>
+            <h3 className="section-title">{t.distance}</h3>
             <p className="section-text">{fountain.distance}</p>
           </div>
         )}
