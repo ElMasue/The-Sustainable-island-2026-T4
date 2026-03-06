@@ -1,15 +1,13 @@
-import { useTranslation } from '../i18n';
 import './Divider.css';
 
 export type DividerProps = {
   text?: string;
 };
 
-function Divider({ text }: DividerProps) {
-  const t = useTranslation();
+function Divider({ text = 'Or' }: DividerProps) {
   return (
     <div className="divider" role="separator">
-      <span>{text || t.or}</span>
+      <span>{text}</span>
     </div>
   );
 }

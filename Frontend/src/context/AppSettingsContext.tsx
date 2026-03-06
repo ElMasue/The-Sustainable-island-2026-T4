@@ -1,11 +1,8 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import type { SupportedLanguage } from '../services/translationService';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 interface AppSettings {
-  language: SupportedLanguage;
+  language: 'en' | 'es';
   darkMode: boolean;
-  setLanguage: (lang: SupportedLanguage) => void;
   toggleLanguage: () => void;
   toggleDarkMode: () => void;
 }
@@ -13,14 +10,11 @@ interface AppSettings {
 const AppSettingsContext = createContext<AppSettings | undefined>(undefined);
 
 export function AppSettingsProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<SupportedLanguage>(() => {
+  const [language, setLanguage] = useState<'en' | 'es'>(() => {
     // try to read from localStorage for persistence
     try {
       const stored = localStorage.getItem('language');
-      if (stored === 'en' || stored === 'es' || stored === 'da' || stored === 'is') {
-        return stored;
-      }
-      return 'en';
+      return stored === 'es' ? 'es' : 'en';
     } catch {
       return 'en';
     }
@@ -47,22 +41,12 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, [darkMode]);
 
-  const setLanguage = (lang: SupportedLanguage) => setLanguageState(lang);
-  
-  const toggleLanguage = () => {
-    setLanguageState((l) => {
-      const langs: SupportedLanguage[] = ['en', 'es', 'da', 'is'];
-      const currentIndex = langs.indexOf(l);
-      const nextIndex = (currentIndex + 1) % langs.length;
-      return langs[nextIndex];
-    });
-  };
-  
+  const toggleLanguage = () => setLanguage((l) => (l === 'en' ? 'es' : 'en'));
   const toggleDarkMode = () => setDarkMode((m) => !m);
 
   return (
     <AppSettingsContext.Provider
-      value={{ language, darkMode, setLanguage, toggleLanguage, toggleDarkMode }}
+      value={{ language, darkMode, toggleLanguage, toggleDarkMode }}
     >
       {children}
     </AppSettingsContext.Provider>

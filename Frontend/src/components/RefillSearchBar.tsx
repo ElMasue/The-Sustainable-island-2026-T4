@@ -1,4 +1,3 @@
-import { useTranslation } from '../i18n';
 import './RefillSearchBar.css';
 
 export type RefillSearchBarProps = {
@@ -7,9 +6,7 @@ export type RefillSearchBarProps = {
   placeholder?: string;
 };
 
-function RefillSearchBar({ value, onChange, placeholder }: RefillSearchBarProps) {
-  const t = useTranslation();
-  
+function RefillSearchBar({ value, onChange, placeholder = 'Find refill station' }: RefillSearchBarProps) {
   return (
     <div className="refill-search-bar">
       <svg className="refill-search-bar__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -18,10 +15,9 @@ function RefillSearchBar({ value, onChange, placeholder }: RefillSearchBarProps)
       <input
         type="text"
         className="refill-search-bar__input"
-        placeholder={placeholder || t.findRefillStation}
+        placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        aria-label={t.search}
       />
     </div>
   );

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTranslation } from '../i18n';
 import AuthFormFooter from './AuthFormFooter';
 import './SignUpForm.css';
 import AuthPageLayout from './AuthPageLayout';
@@ -16,7 +15,6 @@ function SignUpForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const t = useTranslation();
 
   const { signUp } = useAuth();
 
@@ -40,40 +38,40 @@ function SignUpForm() {
 
 
   return (
-    <AuthPageLayout title={t.signUp} backTo="/">
+    <AuthPageLayout title="Sign Up" backTo="/">
       <form className="sign-up-form" onSubmit={handleSubmit}>
         <FormInput
-          label={t.fullName}
+          label="Full Name"
           type="text"
-          placeholder={t.enterFullName}
+          placeholder="Enter full name"
           value={name}
           onChange={setName}
           required
         />
 
         <FormInput
-          label={t.emailAddress}
+          label="Email Address"
           type="email"
-          placeholder={t.enterEmail}
+          placeholder="Enter email address"
           value={email}
           onChange={setEmail}
           required
         />
         <FormInput
-          label={t.password}
+          label="Password"
           type="password"
-          placeholder={t.enterPassword}
+          placeholder="Enter password"
           value={password}
           onChange={setPassword}
           required
         />
         {error && <p className="auth-error">{error}</p>}
 
-        <PrimaryButton type="submit">{t.continue}</PrimaryButton>
+        <PrimaryButton type="submit">Continue</PrimaryButton>
 
         <AuthFormFooter
-          text={t.alreadyHaveAccount}
-          linkText={t.signIn}
+          text="Already have an account?"
+          linkText="Sign In"
           onLinkClick={() => navigate('/signin')}
         />
 
