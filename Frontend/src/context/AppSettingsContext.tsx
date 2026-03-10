@@ -47,14 +47,19 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, [darkMode]);
 
-  const setLanguage = (lang: SupportedLanguage) => setLanguageState(lang);
+  const setLanguage = (lang: SupportedLanguage) => {
+    console.log('🌍 Language changing to:', lang);
+    setLanguageState(lang);
+  };
   
   const toggleLanguage = () => {
     setLanguageState((l) => {
       const langs: SupportedLanguage[] = ['en', 'es', 'da', 'is'];
       const currentIndex = langs.indexOf(l);
       const nextIndex = (currentIndex + 1) % langs.length;
-      return langs[nextIndex];
+      const newLang = langs[nextIndex];
+      console.log('🌍 Language toggled from', l, 'to', newLang);
+      return newLang;
     });
   };
   

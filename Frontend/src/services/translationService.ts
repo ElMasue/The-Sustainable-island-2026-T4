@@ -24,14 +24,19 @@ export async function translateText(
   targetLang: SupportedLanguage,
   sourceLang: SupportedLanguage = 'en'
 ): Promise<string> {
+  console.log(`🔄 translateText called: ${sourceLang} -> ${targetLang}`);
+  console.log(`📝 Text to translate:`, text);
+  
   // If source and target are the same, return original text
   if (sourceLang === targetLang) {
+    console.log('⚠️ Source and target are the same, returning original');
     return text;
   }
 
   // Check cache first
   const cacheKey = `${sourceLang}|${targetLang}|${text}`;
   if (translationCache[cacheKey]) {
+    console.log('✅ Found in cache:', translationCache[cacheKey]);
     return translationCache[cacheKey];
   }
 
@@ -39,6 +44,8 @@ export async function translateText(
     const encodedText = encodeURIComponent(text);
     const langPair = `${sourceLang}|${targetLang}`;
     const url = `${MYMEMORY_API_URL}?q=${encodedText}&langpair=${langPair}`;
+    
+    console.log('🌐 Fetching translation from API:', url);
 
     const response = await fetch(url);
     
@@ -47,18 +54,20 @@ export async function translateText(
     }
 
     const data = await response.json();
+    console.log('📦 API Response:', data);
     
     if (data.responseStatus === 200 && data.responseData?.translatedText) {
       const translated = data.responseData.translatedText;
+      console.log('✅ Translation successful:', translated);
       // Cache the result
       translationCache[cacheKey] = translated;
       return translated;
     } else {
-      console.error('Translation failed:', data);
+      console.error('❌ Translation failed - invalid response:', data);
       return text; // Return original text on error
     }
   } catch (error) {
-    console.error('Translation error:', error);
+    console.error('❌ Translation error:', error);
     return text; // Return original text on error
   }
 }

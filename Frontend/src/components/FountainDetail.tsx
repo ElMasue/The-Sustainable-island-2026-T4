@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Fountain } from '../types/fountain';
 import { useTranslation } from '../i18n';
+import { translateCategory } from '../i18n/translations';
 import { useAppSettings } from '../context/AppSettingsContext';
 import { translateText } from '../services/translationService';
 import './FountainDetail.css';
@@ -14,28 +15,43 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
   const t = useTranslation();
   const { language } = useAppSettings();
   const [translatedDescription, setTranslatedDescription] = useState(fountain.description || '');
+  const [isTranslating, setIsTranslating] = useState(false);
   
   useEffect(() => {
     const translateDescription = async () => {
-      if (!fountain.description) return;
-      
-      // Si el idioma es inglés, usar la descripción original
-      if (language === 'en') {
-        setTranslatedDescription(fountain.description);
+      if (!fountain.description) {
+        setTranslatedDescription('');
         return;
       }
       
+      console.log('🌍 Current language:', language);
+      console.log('📝 Original description:', fountain.description);
+      
+      // Si el idioma es español, usar la descripción original (las descripciones están en español)
+      if (language === 'es') {
+        setTranslatedDescription(fountain.description);
+        console.log('✅ Using original Spanish description');
+        return;
+      }
+      
+      // Iniciar traducción desde español al idioma seleccionado
+      setIsTranslating(true);
+      console.log(`🔄 Translating from Spanish to ${language}...`);
+      
       try {
-        const translated = await translateText(fountain.description, language, 'en');
+        const translated = await translateText(fountain.description, language, 'es');
+        console.log('✅ Translation result:', translated);
         setTranslatedDescription(translated);
       } catch (error) {
-        console.error('Translation failed:', error);
+        console.error('❌ Translation failed:', error);
         setTranslatedDescription(fountain.description); // Fallback al original
+      } finally {
+        setIsTranslating(false);
       }
     };
     
     translateDescription();
-  }, [fountain.description, language]);
+  }, [fountain.description, language, fountain.id]);
   
   return (
     <div className="fountain-detail">
@@ -72,13 +88,15 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
             )}
           </div>
           {fountain.category && (
-            <span className="fountain-detail-category">{fountain.category}</span>
+            <span className="fountain-detail-category">
+              {translateCategory(fountain.category, language)}
+            </span>
           )}
         </div>
 
-        <div className="fountain-detail-meta">t.free : t.paid
-          {fountain.isFree !== undefined && (
-            <span className="meta-badge">{fountain.isFree ? 'Free' : 'Paid'}</span>
+        <div className="fountain-detail-meta">
+          {fountain.isFree && (
+            <span className="meta-badge">{t.free}</span>
           )}
           {fountain.rating !== undefined && (
             <div className="meta-rating">
@@ -131,7 +149,9 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
         {fountain.description && (
           <div className="fountain-detail-section">
             <h3 className="section-title">{t.description}</h3>
-            <p className="section-text">{translatedDescription}</p>
+            <p className="section-text">
+              {isTranslating ? `${t.loading}` : translatedDescription || fountain.description}
+            </p>
           </div>
         )}
 
