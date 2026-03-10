@@ -14,6 +14,12 @@ export interface Translations {
   free: string;
   paid: string;
   
+  // Categories
+  categoryFountain: string;
+  categoryBottleRefillStation: string;
+  categoryPublicTap: string;
+  categoryEstablishment: string;
+  
   // Fountains List
   closestFountains: string;
   findClosestFountains: string;
@@ -102,6 +108,12 @@ export const translations: Record<SupportedLanguage, Translations> = {
     free: 'Free',
     paid: 'Paid',
     
+    // Categories
+    categoryFountain: 'Fountain',
+    categoryBottleRefillStation: 'Bottle Refill Station',
+    categoryPublicTap: 'Public Tap',
+    categoryEstablishment: 'Establishment',
+    
     // Fountains List
     closestFountains: 'Closest Fountains',
     findClosestFountains: 'Find the closest water fountains',
@@ -188,6 +200,12 @@ export const translations: Record<SupportedLanguage, Translations> = {
     distance: 'Distancia',
     free: 'Gratis',
     paid: 'De pago',
+    
+    // Categories
+    categoryFountain: 'Fuente',
+    categoryBottleRefillStation: 'Estación de recarga de botellas',
+    categoryPublicTap: 'Grifo público',
+    categoryEstablishment: 'Establecimiento',
     
     // Fountains List
     closestFountains: 'Fuentes más cercanas',
@@ -276,6 +294,12 @@ export const translations: Record<SupportedLanguage, Translations> = {
     free: 'Gratis',
     paid: 'Betalt',
     
+    // Categories
+    categoryFountain: 'Fontæne',
+    categoryBottleRefillStation: 'Flaskegenopfyldningsstation',
+    categoryPublicTap: 'Offentlig vandhane',
+    categoryEstablishment: 'Etablissement',
+    
     // Fountains List
     closestFountains: 'Nærmeste fontæner',
     findClosestFountains: 'Find de nærmeste vandfontæner',
@@ -363,6 +387,12 @@ export const translations: Record<SupportedLanguage, Translations> = {
     free: 'Ókeypis',
     paid: 'Greitt',
     
+    // Categories
+    categoryFountain: 'Lind',
+    categoryBottleRefillStation: 'Áfyllingar stöð',
+    categoryPublicTap: 'Opinber vatnstappi',
+    categoryEstablishment: 'Staður',
+    
     // Fountains List
     closestFountains: 'Næstu laugar',
     findClosestFountains: 'Finndu næstu vatnslaugar',
@@ -439,4 +469,29 @@ export const translations: Record<SupportedLanguage, Translations> = {
 
 export function getTranslation(lang: SupportedLanguage): Translations {
   return translations[lang] || translations.en;
+}
+
+/**
+ * Translate category from English to the selected language
+ * @param category - Category name in English (from database)
+ * @param lang - Target language
+ * @returns Translated category name
+ */
+export function translateCategory(category: string, lang: SupportedLanguage): string {
+  const t = getTranslation(lang);
+  
+  const categoryMap: Record<string, keyof Translations> = {
+    'Fountain': 'categoryFountain',
+    'Bottle Refill Station': 'categoryBottleRefillStation',
+    'Public Tap': 'categoryPublicTap',
+    'Establishment': 'categoryEstablishment',
+  };
+  
+  const key = categoryMap[category];
+  if (key) {
+    return t[key] as string;
+  }
+  
+  // Return original if not found
+  return category;
 }
