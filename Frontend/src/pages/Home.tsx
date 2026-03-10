@@ -27,6 +27,8 @@ function Home() {
   // fall back to localhost:3000 if the env var isn't set (avoids hitting Vite's own server)
   const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
+
+
   useEffect(() => {
     fetch(`${API_BASE}/api/fountains`)
       .then((res) => {
