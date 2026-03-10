@@ -58,11 +58,13 @@
 @media (max-width: 768px) {
   .refill-search-bar {
     top: 0.75rem;
-    width: min(326px, calc(100vw - 5.5rem));
-    height: 40px;
-    padding: 0 6px 0 3px;
+    left: 0.75rem;
+    transform: none;
+    width: calc(100vw - 4.5rem);
+    height: 42px;
+    padding: 0 12px;
     gap: 0.5rem;
-    max-width: calc(100vw - 5.5rem);
+    max-width: none;
   }
 
   .refill-search-bar__input {
