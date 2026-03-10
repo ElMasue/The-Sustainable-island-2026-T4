@@ -1,5 +1,7 @@
 import type { Fountain } from '../types/fountain';
 import { useTranslation } from '../i18n';
+import { translateCategory } from '../i18n/translations';
+import { useAppSettings } from '../context/AppSettingsContext';
 import './FountainCard.css';
 
 interface FountainCardProps {
@@ -10,6 +12,7 @@ interface FountainCardProps {
 
 function FountainCard({ fountain, onClick, showImage = true }: FountainCardProps) {
   const t = useTranslation();
+  const { language } = useAppSettings();
   return (
     <button className="fountain-card" onClick={onClick}>
       {showImage && (
@@ -29,7 +32,9 @@ function FountainCard({ fountain, onClick, showImage = true }: FountainCardProps
         <div className="fountain-card-header">
           <h3 className="fountain-card-title">{fountain.name}</h3>
           {fountain.category && (
-            <span className="fountain-category">{fountain.category}</span>
+            <span className="fountain-category">
+              {translateCategory(fountain.category, language)}
+            </span>
           )}
         </div>
         <div className="fountain-card-details">

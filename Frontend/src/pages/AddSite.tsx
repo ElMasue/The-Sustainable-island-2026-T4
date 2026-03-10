@@ -199,7 +199,7 @@ function AddSite() {
               <option value="fountain">Fountain</option>
               <option value="bottle-refill">Bottle Refill Station</option>
               <option value="tap">Public Tap</option>
-              <option value="other">Other</option>
+              <option value="establishment">Establishment</option>
             </select>
           </div>
 

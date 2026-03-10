@@ -482,9 +482,13 @@ export function translateCategory(category: string, lang: SupportedLanguage): st
   
   const categoryMap: Record<string, keyof Translations> = {
     'Fountain': 'categoryFountain',
+    'fountain': 'categoryFountain',
     'Bottle Refill Station': 'categoryBottleRefillStation',
+    'bottle-refill': 'categoryBottleRefillStation',
     'Public Tap': 'categoryPublicTap',
+    'tap': 'categoryPublicTap',
     'Establishment': 'categoryEstablishment',
+    'establishment': 'categoryEstablishment',
   };
   
   const key = categoryMap[category];

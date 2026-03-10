@@ -75,6 +75,7 @@
   color: #1976d2;
   border-radius: 4px;
   flex-shrink: 0;
+  text-transform: capitalize;
 }
 
 .fountain-card-details {
