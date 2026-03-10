@@ -29,6 +29,7 @@
 
 /* Desktop layout */
 @media (min-width: 1024px) {
+
   /* Hide mobile elements */
   .home__mobile-header {
     display: none;
@@ -110,9 +111,9 @@
     z-index: 1001;
     color: #333;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                background 0.2s,
-                box-shadow 0.2s,
-                transform 0.2s;
+      background 0.2s,
+      box-shadow 0.2s,
+      transform 0.2s;
   }
 
   .panel-toggle-btn:hover {
@@ -180,10 +181,10 @@ body.dark-mode .panel-toggle-btn:hover {
 /* Floating Action Button for adding new site */
 .add-site-fab {
   position: fixed;
-  bottom: 5rem;
-  right: 1.5rem;
-  width: 56px;
-  height: 56px;
+  bottom: calc(35vh + 16px);
+  right: 1rem;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: linear-gradient(135deg, #4F7CAC 0%, #3d6189 100%);
   color: white;
@@ -211,6 +212,8 @@ body.dark-mode .panel-toggle-btn:hover {
   .add-site-fab {
     bottom: 2rem;
     right: 2rem;
+    width: 56px;
+    height: 56px;
   }
 
   .home--panel-collapsed .add-site-fab {

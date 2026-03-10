@@ -7,9 +7,10 @@ import './FountainDetail.css';
 
 interface FountainDetailProps {
   fountain: Fountain;
+  onBack?: () => void;
 }
 
-function FountainDetail({ fountain }: FountainDetailProps) {
+function FountainDetail({ fountain, onBack }: FountainDetailProps) {
   const t = useTranslation();
   const { language } = useAppSettings();
   const [translatedDescription, setTranslatedDescription] = useState(fountain.description || '');
@@ -55,7 +56,21 @@ function FountainDetail({ fountain }: FountainDetailProps) {
 
       <div className="fountain-detail-content">
         <div className="fountain-detail-title-section">
-          <h2 className="fountain-detail-title">{fountain.name}</h2>
+          <div className="fountain-detail-title-row">
+            <h2 className="fountain-detail-title">{fountain.name}</h2>
+            {onBack && (
+              <button 
+                className="fountain-detail-back-button" 
+                onClick={onBack}
+                aria-label="Back to list"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                <span>Back to list</span>
+              </button>
+            )}
+          </div>
           {fountain.category && (
             <span className="fountain-detail-category">{fountain.category}</span>
           )}

@@ -103,10 +103,10 @@
 /* ── Locate Me Button ── */
 .map-locate-btn {
   position: absolute;
-  bottom: 24px;
-  right: 16px;
-  width: 44px;
-  height: 44px;
+  bottom: calc(2rem + 72px);
+  right: 2rem;
+  width: 48px;
+  height: 48px;
   background: white;
   border: none;
   border-radius: 50%;
@@ -138,11 +138,19 @@
 /* Adjust button position on mobile to avoid bottom sheet */
 @media (max-width: 768px) {
   .map-locate-btn {
-    bottom: 96px;
-    /* Above bottom sheet */
+    bottom: calc(35vh + 72px);
+    top: auto;
+    left: auto;
+    right: 1rem;
+    width: 44px;
+    height: 44px;
   }
 
   .accuracy-circle {
     display: none;
+  }
+
+  .leaflet-control-zoom {
+    display: none !important;
   }
 }

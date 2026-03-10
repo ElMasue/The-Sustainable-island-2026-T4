@@ -48,19 +48,11 @@ function Home() {
   const handleFountainClick = (fountain: Fountain) => {
     setSelectedFountain(fountain);
     setSheetContent('detail');
-    setCurrentSnap(1);
+    setCurrentSnap(0);
   };
 
   const handleSheetSnapChange = (snapIndex: number) => {
     setCurrentSnap(snapIndex);
-    if (snapIndex === 0) {
-      if (sheetContent === 'detail') {
-        setSheetContent('list');
-        setSelectedFountain(null);
-      } else if (sheetContent === 'profile') {
-        setSheetContent('list');
-      }
-    }
   };
 
   const handleMapClick = () => {
@@ -89,7 +81,7 @@ function Home() {
       {sheetContent === 'list' ? (
         <FountainsList fountains={fountains} onFountainClick={handleFountainClick} />
       ) : sheetContent === 'detail' ? (
-        selectedFountain && <FountainDetail fountain={selectedFountain} />
+        selectedFountain && <FountainDetail fountain={selectedFountain} onBack={handleBackToList} />
       ) : (
         <ProfileMenu onClose={() => setSheetContent('list')} />
       )}
@@ -159,7 +151,7 @@ function Home() {
 
       {/* Mobile: Bottom sheet */}
       <BottomSheet
-        snapPoints={[28, 60, 90]}
+        snapPoints={[35, 60, 90]}
         defaultSnap={currentSnap}
         onSnapChange={handleSheetSnapChange}
       >
