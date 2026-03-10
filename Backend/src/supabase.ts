@@ -18,7 +18,22 @@ export interface WaterSourceRow {
   is_operational: boolean;
   is_free: boolean | null;
   category: string | null;
+  images?: string[] | null;
+  user_id?: string | null;
   created_at?: string;
+}
+
+export interface CreateWaterSourceInput {
+  name: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+  rating?: number;
+  isOperational?: boolean;
+  isFree?: boolean;
+  category?: string;
+  images?: string[];
+  userId: string;
 }
 
 export interface WaterSourceResponse {
@@ -31,6 +46,7 @@ export interface WaterSourceResponse {
   isOperational: boolean;
   isFree?: boolean;
   category?: string;
+  images?: string[];
   useAdminPin: false;
 }
 
@@ -44,6 +60,7 @@ function toResponse(row: WaterSourceRow): WaterSourceResponse {
     rating: row.rating ?? undefined,
     isOperational: row.is_operational ?? true,
     isFree: row.is_free ?? undefined,
+    images: row.images ?? undefined,
     category: row.category ?? undefined,
     useAdminPin: false,
   };
@@ -58,8 +75,8 @@ export async function getWaterSources(): Promise<WaterSourceResponse[]> {
   // see what’s going wrong in future.
   const { data, error } = await supabase
     .from(TABLE)
-    // request all fields we need; you can also use '*' to grab everything
-    .select('id, name, latitude, longitude, description, rating, is_operational, is_free, category');
+    .select('id, name, latitude, longitude, description, rating, is_operational, is_free, category, images')
+    .order('created_at', { ascending: false });
   // the original incarnation of the table had a `created_at` column, but the
   // current schema does not; ordering by a nonexistent column causes a 42703
   // error, so we simply omit the `order` clause for now (you can add specific
@@ -76,4 +93,42 @@ export async function getWaterSources(): Promise<WaterSourceResponse[]> {
 
   const rows = data as WaterSourceRow[];
   return rows.map(toResponse);
+}
+
+export async function createWaterSource(input: CreateWaterSourceInput): Promise<WaterSourceResponse | null> {
+  if (!supabase) {
+    console.error('Supabase client not initialized');
+    return null;
+  }
+
+  const row = {
+    name: input.name,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    description: input.description ?? null,
+    rating: input.rating ?? null,
+    is_operational: input.isOperational ?? true,
+    is_free: input.isFree ?? true,
+    category: input.category ?? null,
+    images: input.images ?? null,
+    user_id: input.userId,
+  };
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .insert(row)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('supabase createWaterSource error', error);
+    return null;
+  }
+
+  if (!data) {
+    console.warn('supabase createWaterSource returned no data');
+    return null;
+  }
+
+  return toResponse(data as WaterSourceRow);
 }
