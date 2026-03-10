@@ -21,7 +21,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // Water fountains routes (fetch from Supabase)
-import { getWaterSources } from './supabase';
+import { getWaterSources, createWaterSource } from './supabase';
 
 app.get('/api/fountains', async (req: Request, res: Response) => {
   try {
@@ -31,6 +31,39 @@ app.get('/api/fountains', async (req: Request, res: Response) => {
   } catch (e) {
     console.error('GET /api/fountains', e);
     res.status(500).json({ error: 'Failed to fetch fountains' });
+  }
+});
+
+app.post('/api/fountains', async (req: Request, res: Response) => {
+  try {
+    const { name, latitude, longitude, description, rating, isOperational, isFree, category, images, userId } = req.body;
+    
+    if (!name || latitude === undefined || longitude === undefined || !userId) {
+      return res.status(400).json({ error: 'Missing required fields: name, latitude, longitude, userId' });
+    }
+
+    const result = await createWaterSource({
+      name,
+      latitude,
+      longitude,
+      description,
+      rating,
+      isOperational,
+      isFree,
+      category,
+      images,
+      userId,
+    });
+
+    if (!result) {
+      return res.status(500).json({ error: 'Failed to create fountain' });
+    }
+
+    console.log('POST /api/fountains -> created', result.id);
+    res.status(201).json(result);
+  } catch (e) {
+    console.error('POST /api/fountains', e);
+    res.status(500).json({ error: 'Failed to create fountain' });
   }
 });
 

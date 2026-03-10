@@ -176,3 +176,49 @@ body.dark-mode .panel-toggle-btn:hover {
   background: #333;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
+
+/* Floating Action Button for adding new site */
+.add-site-fab {
+  position: fixed;
+  bottom: 5rem;
+  right: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4F7CAC 0%, #3d6189 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+.add-site-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.add-site-fab:active {
+  transform: scale(0.95);
+}
+
+/* Desktop positioning */
+@media (min-width: 1024px) {
+  .add-site-fab {
+    bottom: 2rem;
+    right: 2rem;
+  }
+
+  .home--panel-collapsed .add-site-fab {
+    right: 2rem;
+  }
+}
+
+body.dark-mode .add-site-fab {
+  background: linear-gradient(135deg, #4F7CAC 0%, #5a8fc4 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
