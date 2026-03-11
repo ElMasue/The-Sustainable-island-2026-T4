@@ -236,7 +236,7 @@ app.post('/api/water-quality-ratings', async (req: Request, res: Response) => {
 
 app.get('/api/water-quality-ratings/:fountainId', async (req: Request, res: Response) => {
   try {
-    const { fountainId } = req.params;
+    const fountainId = req.params.fountainId as string;
 
     if (!fountainId) {
       return res.status(400).json({ error: 'Missing fountainId parameter' });
@@ -257,7 +257,8 @@ app.get('/api/water-quality-ratings/:fountainId', async (req: Request, res: Resp
 
 app.get('/api/water-quality-ratings/:fountainId/user/:userId', async (req: Request, res: Response) => {
   try {
-    const { fountainId, userId } = req.params;
+    const fountainId = req.params.fountainId as string;
+    const userId = req.params.userId as string;
 
     if (!fountainId || !userId) {
       return res.status(400).json({ error: 'Missing fountainId or userId parameter' });
