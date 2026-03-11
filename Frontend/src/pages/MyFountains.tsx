@@ -41,7 +41,7 @@ function MyFountains() {
 
   if (!user) {
     return (
-      <div className="my-fountains" style={{ background: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div className="my-fountains" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <BackHeader title="My Fountains" backTo="/" />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <p style={{ color: '#666' }}>You must be signed in to view your fountains.</p>
@@ -51,7 +51,7 @@ function MyFountains() {
   }
 
   return (
-    <div className="my-fountains" style={{ background: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="my-fountains" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <BackHeader title="My Fountains" backTo="/" />
       
       <div className="my-fountains__content" style={{ padding: '1.5rem', flex: 1 }}>
@@ -79,11 +79,10 @@ function MyFountains() {
           </div>
         ) : (
           <div className="fountains-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <h3 style={{ margin: '0 0 1rem 0', color: '#333' }}>Your Contributions ({fountains.length})</h3>
+            <h3 className="my-fountains-list-title" style={{ margin: '0 0 1rem 0' }}>Your Contributions ({fountains.length})</h3>
             
             {fountains.map(fountain => (
               <div key={fountain.id} className="my-fountain-card" style={{
-                background: 'white',
                 borderRadius: '12px',
                 padding: '1rem',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
@@ -92,7 +91,7 @@ function MyFountains() {
                 alignItems: 'center'
               }}>
                 <div>
-                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#000', fontSize: '1.1rem' }}>{fountain.name}</h4>
+                  <h4 className="my-fountain-title" style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>{fountain.name}</h4>
                   <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.85rem' }}>
                     {fountain.isOperational ? (
                       <span style={{ color: '#4caf50', background: '#e8f5e9', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>Operational</span>
@@ -106,11 +105,10 @@ function MyFountains() {
                 </div>
                 
                 <button
+                  className="my-fountain-edit-btn"
                   onClick={() => navigate(`/edit-site/${fountain.id}`)}
                   style={{
                     border: 'none',
-                    background: '#f0f0f0',
-                    color: '#333',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     fontWeight: '600',
@@ -120,8 +118,6 @@ function MyFountains() {
                     alignItems: 'center',
                     gap: '6px'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.background = '#e0e0e0'}
-                  onMouseOut={(e) => e.currentTarget.style.background = '#f0f0f0'}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
