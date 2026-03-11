@@ -20,3 +20,8 @@
     padding: 1.5rem 1rem;
   }
 }
+
+/* ── Dark Mode Support ── */
+body.dark-mode .auth-page-layout {
+  background-color: #121212;
+}
