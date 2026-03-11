@@ -27,7 +27,10 @@ import {
   updateWaterSource,
   addFountainInteraction,
   removeFountainInteraction,
-  getUserInteractions
+  getUserInteractions,
+  upsertWaterQualityRating,
+  getUserRatingForFountain,
+  getWaterQualityStats
 } from './supabase';
 import { fetchOSMFountains } from './osmService';
 
@@ -194,6 +197,83 @@ app.delete('/api/interactions', async (req: Request, res: Response) => {
   } catch (e) {
     console.error('DELETE /api/interactions', e);
     res.status(500).json({ error: 'Failed to remove interaction' });
+  }
+});
+
+// Water Quality Rating routes
+app.post('/api/water-quality-ratings', async (req: Request, res: Response) => {
+  try {
+    const { userId, fountainId, qualityRating, fountainName, fountainLat, fountainLon } = req.body;
+
+    if (!userId || !fountainId || !qualityRating) {
+      return res.status(400).json({ error: 'Missing required fields: userId, fountainId, qualityRating' });
+    }
+
+    if (qualityRating < 1 || qualityRating > 5) {
+      return res.status(400).json({ error: 'qualityRating must be between 1 and 5' });
+    }
+
+    const result = await upsertWaterQualityRating({
+      userId,
+      fountainId: fountainId.toString(),
+      qualityRating: qualityRating as 1 | 2 | 3 | 4 | 5,
+      fountainName,
+      fountainLat,
+      fountainLon
+    });
+
+    if (!result) {
+      return res.status(500).json({ error: 'Failed to save rating' });
+    }
+
+    console.log('POST /api/water-quality-ratings -> created/updated', result.id);
+    res.status(201).json(result);
+  } catch (e) {
+    console.error('POST /api/water-quality-ratings', e);
+    res.status(500).json({ error: 'Failed to save rating' });
+  }
+});
+
+app.get('/api/water-quality-ratings/:fountainId', async (req: Request, res: Response) => {
+  try {
+    const { fountainId } = req.params;
+
+    if (!fountainId) {
+      return res.status(400).json({ error: 'Missing fountainId parameter' });
+    }
+
+    const stats = await getWaterQualityStats(fountainId);
+
+    if (!stats) {
+      return res.status(500).json({ error: 'Failed to fetch water quality stats' });
+    }
+
+    res.json(stats);
+  } catch (e) {
+    console.error('GET /api/water-quality-ratings/:fountainId', e);
+    res.status(500).json({ error: 'Failed to fetch water quality stats' });
+  }
+});
+
+app.get('/api/water-quality-ratings/:fountainId/user/:userId', async (req: Request, res: Response) => {
+  try {
+    const { fountainId, userId } = req.params;
+
+    if (!fountainId || !userId) {
+      return res.status(400).json({ error: 'Missing fountainId or userId parameter' });
+    }
+
+    const rating = await getUserRatingForFountain(userId, fountainId);
+
+    if (!rating) {
+      return res.status(404).json({ error: 'No rating found for this user and fountain' });
+    }
+
+    res.json(rating);
+  } catch (e) {
+    console.error('GET /api/water-quality-ratings/:fountainId/user/:userId', e);
+    // 404 is expected when user hasn't rated yet
+    res.status(404).json({ error: 'No rating found' });
   }
 });
 
