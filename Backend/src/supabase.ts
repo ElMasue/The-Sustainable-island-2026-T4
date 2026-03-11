@@ -307,6 +307,47 @@ export interface WaterQualityStatsResponse {
 }
 
 /**
+ * Updates the rating of a fountain in water_sources based on water quality ratings
+ * Only works for custom fountains (UUIDs), not OSM fountains
+ */
+async function updateFountainRating(fountainId: string): Promise<void> {
+  if (!supabase) return;
+
+  // Check if fountainId is a valid UUID (custom fountain in water_sources)
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(fountainId)) {
+    // OSM fountain, skip (negative integers are not in water_sources table)
+    return;
+  }
+
+  try {
+    // Calculate the average rating for this fountain
+    const stats = await getWaterQualityStats(fountainId);
+    
+    if (!stats) {
+      console.warn('Could not get water quality stats for fountain', fountainId);
+      return;
+    }
+
+    const newRating = stats.totalRatings > 0 ? stats.averageRating : null;
+
+    // Update the water_sources rating
+    const { error } = await supabase
+      .from(TABLE)
+      .update({ rating: newRating })
+      .eq('id', fountainId);
+
+    if (error) {
+      console.error('Error updating fountain rating:', error);
+    } else {
+      console.log(`Updated fountain ${fountainId} rating to ${newRating}`);
+    }
+  } catch (error) {
+    console.error('Error in updateFountainRating:', error);
+  }
+}
+
+/**
  * Adds or updates a user's water quality rating for a fountain
  * Uses upsert to handle both create and update cases
  */
@@ -340,6 +381,10 @@ export async function upsertWaterQualityRating(input: WaterQualityRatingInput): 
     console.warn('supabase upsertWaterQualityRating returned no data');
     return null;
   }
+
+  // Update the fountain's overall rating after saving the quality rating
+  // This is a backup to the database trigger
+  await updateFountainRating(input.fountainId);
 
   return {
     id: data.id,
