@@ -16,6 +16,41 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
   const { language } = useAppSettings();
   const [translatedDescription, setTranslatedDescription] = useState(fountain.description || '');
   const [isTranslating, setIsTranslating] = useState(false);
+  const [expandedImageIndex, setExpandedImageIndex] = useState<number | null>(null);
+
+  const openLightbox = (index: number) => {
+    setExpandedImageIndex(index);
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('lightbox-open');
+  };
+
+  const closeLightbox = () => {
+    setExpandedImageIndex(null);
+    document.body.style.overflow = '';
+    document.body.classList.remove('lightbox-open');
+  };
+
+  const nextImage = () => {
+    if (fountain.images && expandedImageIndex !== null) {
+      setExpandedImageIndex((expandedImageIndex + 1) % fountain.images.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (fountain.images && expandedImageIndex !== null) {
+      setExpandedImageIndex(
+        expandedImageIndex === 0 ? fountain.images.length - 1 : expandedImageIndex - 1
+      );
+    }
+  };
+
+  // Clean up body overflow on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+      document.body.classList.remove('lightbox-open');
+    };
+  }, []);
   
   useEffect(() => {
     const translateDescription = async () => {
@@ -106,7 +141,12 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
         {fountain.images && fountain.images.length > 0 && (
           <div className="fountain-detail-images">
             {fountain.images.map((image, index) => (
-              <div key={index} className="detail-image">
+              <div 
+                key={index} 
+                className="detail-image"
+                onClick={() => openLightbox(index)}
+                style={{ cursor: 'pointer' }}
+              >
                 <img src={image} alt={`${fountain.name} ${index + 1}`} />
               </div>
             ))}
@@ -157,6 +197,63 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
           </div>
         )}
       </div>
+
+      {/* Image Lightbox */}
+      {expandedImageIndex !== null && fountain.images && (
+        <div 
+          className="image-lightbox"
+          onClick={closeLightbox}
+        >
+          <button 
+            className="lightbox-close"
+            onClick={closeLightbox}
+            aria-label="Close"
+          >
+            ✕
+          </button>
+
+          {fountain.images.length > 1 && (
+            <>
+              <button 
+                className="lightbox-nav lightbox-prev"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevImage();
+                }}
+                aria-label="Previous image"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6"/>
+                </svg>
+              </button>
+              <button 
+                className="lightbox-nav lightbox-next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextImage();
+                }}
+                aria-label="Next image"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </button>
+            </>
+          )}
+
+          <img 
+            src={fountain.images[expandedImageIndex]} 
+            alt={`${fountain.name} ${expandedImageIndex + 1}`}
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {fountain.images.length > 1 && (
+            <div className="lightbox-counter">
+              {expandedImageIndex + 1} / {fountain.images.length}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
