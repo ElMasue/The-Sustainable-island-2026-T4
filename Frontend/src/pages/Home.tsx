@@ -30,18 +30,45 @@ function Home() {
 
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/fountains`)
-      .then((res) => {
-        console.log('api response status', res.status);
-        return res.json();
-      })
-      .then((data: Fountain[]) => {
-        console.log('fountains fetched', data);
-        setFountains(data);
-      })
-      .catch((err) => {
-        console.error('failed to load fountains', err);
-      });
+    const fetchFountains = (lat?: number, lon?: number) => {
+      const queryParams = new URLSearchParams();
+      if (lat !== undefined && lon !== undefined) {
+        queryParams.append('lat', lat.toString());
+        queryParams.append('lon', lon.toString());
+        queryParams.append('radius', '30000');
+      }
+      
+      const queryString = queryParams.toString();
+      const url = `${API_BASE}/api/fountains${queryString ? `?${queryString}` : ''}`;
+      
+      fetch(url)
+        .then((res) => {
+          console.log('api response status', res.status);
+          return res.json();
+        })
+        .then((data: Fountain[]) => {
+          console.log('fountains fetched', data);
+          setFountains(data);
+        })
+        .catch((err) => {
+          console.error('failed to load fountains', err);
+        });
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          fetchFountains(position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          console.warn('Geolocation error in Home, falling back to default:', error.message);
+          fetchFountains(); // fallback without coordinates
+        },
+        { timeout: 10000, maximumAge: 60000 }
+      );
+    } else {
+      fetchFountains(); // fallback if geolocation not supported
+    }
   }, [API_BASE]);
   const [sheetContent, setSheetContent] = useState<SheetContent>('list');
   const [currentSnap, setCurrentSnap] = useState(0);
@@ -141,6 +168,7 @@ function Home() {
         fountains={fountains}
         selectedFountain={selectedFountain}
         onMapClick={handleMapClick}
+        onFountainClick={handleFountainClick}
       />
 
       {/* Mobile: Bottom sheet */}

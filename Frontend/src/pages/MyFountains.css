@@ -1,0 +1,45 @@
+/* Styles for MyFountains view */
+.my-fountains {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.my-fountains__content {
+    padding: 1.5rem;
+    flex: 1;
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.fountains-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.my-fountain-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.my-fountain-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 600px) {
+    .my-fountain-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
