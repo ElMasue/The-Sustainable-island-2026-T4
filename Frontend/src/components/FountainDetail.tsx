@@ -57,16 +57,11 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
     <div className="fountain-detail">
       <div className="fountain-detail-header">
         <div className="fountain-detail-map">
-          <img 
-            src={fountain.imageUrl || 'https://via.placeholder.com/400x200?text=Map'} 
-            alt={`${fountain.name} location`}
+          <iframe 
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${fountain.longitude-0.005},${fountain.latitude-0.005},${fountain.longitude+0.005},${fountain.latitude+0.005}&layer=mapnik&marker=${fountain.latitude},${fountain.longitude}`}
+            style={{ width: '100%', height: '100%', border: 'none' }}
+            title={`${fountain.name} location`}
           />
-          <div className="fountain-detail-marker">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="#FF5722" stroke="white" strokeWidth="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-          </div>
         </div>
       </div>
 
