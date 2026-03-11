@@ -76,6 +76,38 @@
   background: #e5e5e5;
 }
 
+.fountain-detail-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #f5f5f5;
+  border: 1px solid #eee;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  padding: 0;
+  color: #666;
+}
+
+.fountain-detail-action-button:hover {
+  background: #fff;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.fountain-detail-action-button.active {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+.fountain-detail-action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .fountain-detail-title {
   font-size: 1.35rem;
   font-weight: 700;

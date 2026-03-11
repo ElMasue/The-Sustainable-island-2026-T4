@@ -7,6 +7,8 @@ export const supabase: SupabaseClient | null =
   url && serviceRoleKey ? createClient(url, serviceRoleKey) : null;
 
 const TABLE = 'water_sources';
+const INTERACTIONS_TABLE = 'user_fountain_interactions';
+
 
 export interface WaterSourceRow {
   id: string;
@@ -73,12 +75,10 @@ export async function getWaterSources(): Promise<WaterSourceResponse[]> {
 
   const { data, error } = await supabase
     .from(TABLE)
-    .select('id, name, latitude, longitude, description, rating, is_operational, is_free, category, images, user_id')
-    .order('created_at', { ascending: false });
-  // the original incarnation of the table had a `created_at` column, but the
+    .select('id, name, latitude, longitude, description, rating, is_operational, is_free, category, images, user_id');
+  // The original incarnation of the table had a `created_at` column, but the
   // current schema does not; ordering by a nonexistent column causes a 42703
-  // error, so we simply omit the `order` clause for now (you can add specific
-  // ordering later if you add a timestamp field or choose a different column).
+  // error.
 
   if (error) {
     console.error('supabase getWaterSources error', error);
@@ -183,3 +183,94 @@ export async function updateWaterSource(input: UpdateWaterSourceInput): Promise<
 
   return toResponse(data as WaterSourceRow);
 }
+
+export interface FountainInteractionInput {
+  userId: string;
+  fountainId: string;
+  interactionType: 'favorite' | 'save';
+  fountainName?: string;
+  fountainLat?: number;
+  fountainLon?: number;
+}
+
+export async function addFountainInteraction(input: FountainInteractionInput): Promise<boolean> {
+  if (!supabase) return false;
+
+  const { error } = await supabase
+    .from(INTERACTIONS_TABLE)
+    .insert({
+      user_id: input.userId,
+      fountain_id: input.fountainId,
+      interaction_type: input.interactionType,
+      fountain_name: input.fountainName,
+      fountain_lat: input.fountainLat,
+      fountain_lon: input.fountainLon
+    });
+
+  if (error) {
+    // If it's a unique constraint violation (code 23505), it already exists, so it's fine.
+    if (error.code !== '23505') {
+      console.error('supabase addFountainInteraction error', error);
+      return false;
+    }
+  }
+  return true;
+}
+
+export async function removeFountainInteraction(userId: string, fountainId: string, interactionType: 'favorite' | 'save'): Promise<boolean> {
+  if (!supabase) return false;
+
+  const { error } = await supabase
+    .from(INTERACTIONS_TABLE)
+    .delete()
+    .match({ user_id: userId, fountain_id: fountainId, interaction_type: interactionType });
+
+  if (error) {
+    console.error('supabase removeFountainInteraction error', error);
+    return false;
+  }
+  return true;
+}
+
+// Minimal interface for returning the UI data from interactions
+export interface InteractionResponse {
+  fountainId: string;
+  interactionType: 'favorite' | 'save';
+  fountainName: string | null;
+  fountainLat: number | null;
+  fountainLon: number | null;
+  createdAt: string;
+}
+
+export async function getUserInteractions(userId: string, interactionType?: 'favorite' | 'save'): Promise<InteractionResponse[]> {
+  if (!supabase) return [];
+
+  let query = supabase
+    .from(INTERACTIONS_TABLE)
+    .select('fountain_id, interaction_type, fountain_name, fountain_lat, fountain_lon, created_at')
+    .eq('user_id', userId);
+
+  if (interactionType) {
+    query = query.eq('interaction_type', interactionType);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('supabase getUserInteractions error', error);
+    return [];
+  }
+
+  if (!data) return [];
+
+  return data.map((row: any) => ({
+    fountainId: row.fountain_id,
+    interactionType: row.interaction_type,
+    fountainName: row.fountain_name,
+    fountainLat: row.fountain_lat,
+    fountainLon: row.fountain_lon,
+    createdAt: row.created_at
+  }));
+}
+
+

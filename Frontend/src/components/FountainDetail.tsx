@@ -8,6 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import { translateText } from '../services/translationService';
 import './FountainDetail.css';
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+
 interface FountainDetailProps {
   fountain: Fountain;
   onBack?: () => void;
@@ -22,6 +24,10 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
   const [translatedDescription, setTranslatedDescription] = useState(fountain.description || '');
   const [isTranslating, setIsTranslating] = useState(false);
   const [expandedImageIndex, setExpandedImageIndex] = useState<number | null>(null);
+  
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isLoadingInteractions, setIsLoadingInteractions] = useState(false);
 
   const openLightbox = (index: number) => {
     setExpandedImageIndex(index);
@@ -92,6 +98,75 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
     
     translateDescription();
   }, [fountain.description, language, fountain.id]);
+
+  // Fetch interaction status
+  useEffect(() => {
+    const fetchInteractions = async () => {
+      if (!user) return;
+      
+      try {
+        const [favRes, saveRes] = await Promise.all([
+          fetch(`${API_BASE}/api/interactions/favorite?userId=${user.id}`),
+          fetch(`${API_BASE}/api/interactions/save?userId=${user.id}`)
+        ]);
+        
+        if (favRes.ok && saveRes.ok) {
+          const favorites = await favRes.json();
+          const saved = await saveRes.json();
+          
+          setIsFavorited(favorites.some((f: any) => f.fountainId === fountain.id.toString()));
+          setIsSaved(saved.some((f: any) => f.fountainId === fountain.id.toString()));
+        }
+      } catch (error) {
+        console.error('Error fetching interactions:', error);
+      }
+    };
+    
+    fetchInteractions();
+  }, [fountain.id, user]);
+
+  const toggleInteraction = async (type: 'favorite' | 'save') => {
+    if (!user) return; // Should be handled by UI visibility, but safeguard
+    
+    const isCurrentlyActive = type === 'favorite' ? isFavorited : isSaved;
+    const setIsActive = type === 'favorite' ? setIsFavorited : setIsSaved;
+    
+    try {
+      setIsLoadingInteractions(true);
+      if (isCurrentlyActive) {
+        // Remove
+        const res = await fetch(`${API_BASE}/api/interactions`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            fountainId: fountain.id,
+            interactionType: type
+          })
+        });
+        if (res.ok) setIsActive(false);
+      } else {
+        // Add
+        const res = await fetch(`${API_BASE}/api/interactions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            fountainId: fountain.id,
+            interactionType: type,
+            fountainName: fountain.name,
+            fountainLat: fountain.latitude,
+            fountainLon: fountain.longitude
+          })
+        });
+        if (res.ok) setIsActive(true);
+      }
+    } catch (error) {
+      console.error(`Error toggling ${type}:`, error);
+    } finally {
+      setIsLoadingInteractions(false);
+    }
+  };
   
   return (
     <div className="fountain-detail">
@@ -110,6 +185,30 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
           <div className="fountain-detail-title-row">
             <h2 className="fountain-detail-title">{fountain.name}</h2>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {user && (
+                <>
+                  <button 
+                    className={`fountain-detail-action-button ${isFavorited ? 'active' : ''}`}
+                    onClick={() => toggleInteraction('favorite')}
+                    disabled={isLoadingInteractions}
+                    title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill={isFavorited ? "#ff4081" : "none"} stroke={isFavorited ? "#ff4081" : "currentColor"} strokeWidth="2">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                  </button>
+                  <button 
+                    className={`fountain-detail-action-button ${isSaved ? 'active' : ''}`}
+                    onClick={() => toggleInteraction('save')}
+                    disabled={isLoadingInteractions}
+                    title={isSaved ? 'Remove from saved' : 'Save fountain'}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill={isSaved ? "#ffd600" : "none"} stroke={isSaved ? "#ffd600" : "currentColor"} strokeWidth="2">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                  </button>
+                </>
+              )}
               {user?.id === fountain.userId && (
                 <button
                   className="fountain-detail-back-button"
