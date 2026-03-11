@@ -270,6 +270,28 @@
   transform: scale(1.05);
 }
 
+.emoji-button.active {
+  border-color: #FFD700;
+  background: #fff7cc;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.emoji-button.active .emoji {
+  transform: scale(1.1);
+}
+
+.emoji-button.active .emoji-label {
+  color: #000;
+  font-weight: 700;
+}
+
+.emoji-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .emoji-button:active {
   transform: scale(0.95);
 }

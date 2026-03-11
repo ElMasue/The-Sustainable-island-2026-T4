@@ -9,6 +9,10 @@ export interface Translations {
   ratingOk: string;
   ratingGood: string;
   ratingExcellent: string;
+  waterQualityAverage: string;
+  basedOnRatings: string;
+  yourRating: string;
+  signInToRate: string;
   description: string;
   distance: string;
   free: string;
@@ -103,6 +107,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
     ratingOk: 'OK',
     ratingGood: 'Good',
     ratingExcellent: 'Excellent',
+    waterQualityAverage: 'Water Quality',
+    basedOnRatings: 'ratings',
+    yourRating: 'Your rating',
+    signInToRate: 'Sign in to rate',
     description: 'Description',
     distance: 'Distance',
     free: 'Free',
@@ -192,6 +200,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
     rateWaterQuality: 'Califica la calidad del agua',
     rateWaterQualitySubtitle: 'Tu opinión nos ayuda a mejorar la calidad del agua.',
     ratingBad: 'Mala',
+    waterQualityAverage: 'Calidad del agua',
+    basedOnRatings: 'calificaciones',
+    yourRating: 'Tu calificación',
+    signInToRate: 'Inicia sesión para calificar',
     ratingPoor: 'Regular',
     ratingOk: 'Aceptable',
     ratingGood: 'Buena',
@@ -285,6 +297,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
     rateWaterQuality: 'Bedøm vandkvaliteten',
     rateWaterQualitySubtitle: 'Din feedback hjælper os med at forbedre vandkvaliteten.',
     ratingBad: 'Dårlig',
+    waterQualityAverage: 'Vandkvalitet',
+    basedOnRatings: 'bedømmelser',
+    yourRating: 'Din bedømmelse',
+    signInToRate: 'Log ind for at bedømme',
     ratingPoor: 'Ringe',
     ratingOk: 'OK',
     ratingGood: 'God',

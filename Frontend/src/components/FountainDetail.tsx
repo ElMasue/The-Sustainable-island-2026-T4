@@ -28,6 +28,21 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
   const [isFavorited, setIsFavorited] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoadingInteractions, setIsLoadingInteractions] = useState(false);
+  
+  // Water quality rating states
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const [waterQualityStats, setWaterQualityStats] = useState<{
+    averageRating: number;
+    totalRatings: number;
+    distribution: {
+      bad: number;
+      poor: number;
+      ok: number;
+      good: number;
+      excellent: number;
+    };
+  } | null>(null);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
   const openLightbox = (index: number) => {
     setExpandedImageIndex(index);
@@ -99,6 +114,45 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
     translateDescription();
   }, [fountain.description, language, fountain.id]);
 
+  // Fetch water quality stats
+  useEffect(() => {
+    const fetchWaterQualityStats = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/water-quality-ratings/${fountain.id}`);
+        if (res.ok) {
+          const stats = await res.json();
+          setWaterQualityStats(stats);
+        }
+      } catch (error) {
+        console.error('Error fetching water quality stats:', error);
+      }
+    };
+    
+    fetchWaterQualityStats();
+  }, [fountain.id]);
+
+  // Fetch user's rating if authenticated
+  useEffect(() => {
+    const fetchUserRating = async () => {
+      if (!user) return;
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/water-quality-ratings/${fountain.id}/user/${user.id}`);
+        if (res.ok) {
+          const rating = await res.json();
+          setUserRating(rating.qualityRating);
+        } else if (res.status === 404) {
+          // User hasn't rated yet
+          setUserRating(null);
+        }
+      } catch (error) {
+        console.error('Error fetching user rating:', error);
+      }
+    };
+    
+    fetchUserRating();
+  }, [fountain.id, user]);
+
   // Fetch interaction status
   useEffect(() => {
     const fetchInteractions = async () => {
@@ -165,6 +219,44 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
       console.error(`Error toggling ${type}:`, error);
     } finally {
       setIsLoadingInteractions(false);
+    }
+  };
+
+  const handleRating = async (rating: 1 | 2 | 3 | 4 | 5) => {
+    if (!user) {
+      console.warn('User must be logged in to rate');
+      return;
+    }
+    
+    try {
+      setIsSubmittingRating(true);
+      const res = await fetch(`${API_BASE}/api/water-quality-ratings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          fountainId: fountain.id,
+          qualityRating: rating,
+          fountainName: fountain.name,
+          fountainLat: fountain.latitude,
+          fountainLon: fountain.longitude
+        })
+      });
+      
+      if (res.ok) {
+        setUserRating(rating);
+        
+        // Refresh stats
+        const statsRes = await fetch(`${API_BASE}/api/water-quality-ratings/${fountain.id}`);
+        if (statsRes.ok) {
+          const stats = await statsRes.json();
+          setWaterQualityStats(stats);
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+    } finally {
+      setIsSubmittingRating(false);
     }
   };
   
@@ -278,30 +370,80 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
 
         <div className="fountain-detail-section">
           <h3 className="section-title">{t.rateWaterQuality}</h3>
-          <p className="section-subtitle">{t.rateWaterQualitySubtitle}</p>
           
-          <div className="rating-emojis">
-            <button className="emoji-button" aria-label={t.ratingBad}>
-              <span className="emoji">😡</span>
-              <span className="emoji-label">{t.ratingBad}</span>
-            </button>
-            <button className="emoji-button" aria-label={t.ratingPoor}>
-              <span className="emoji">😕</span>
-              <span className="emoji-label">{t.ratingPoor}</span>
-            </button>
-            <button className="emoji-button" aria-label={t.ratingOk}>
-              <span className="emoji">😐</span>
-              <span className="emoji-label">{t.ratingOk}</span>
-            </button>
-            <button className="emoji-button" aria-label={t.ratingGood}>
-              <span className="emoji">🙂</span>
-              <span className="emoji-label">{t.ratingGood}</span>
-            </button>
-            <button className="emoji-button" aria-label={t.ratingExcellent}>
-              <span className="emoji">😍</span>
-              <span className="emoji-label">{t.ratingExcellent}</span>
-            </button>
-          </div>
+          {waterQualityStats && waterQualityStats.totalRatings > 0 && (
+            <div className="water-quality-summary" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1976d2' }}>
+                  {waterQualityStats.averageRating.toFixed(1)}
+                </span>
+                <span style={{ fontSize: '0.875rem', color: '#666' }}>/5</span>
+              </div>
+              <span style={{ fontSize: '0.875rem', color: '#666' }}>
+                ({waterQualityStats.totalRatings} {t.basedOnRatings})
+              </span>
+            </div>
+          )}
+          
+          {user ? (
+            <>
+              <p className="section-subtitle">
+                {userRating ? `${t.yourRating}: ${['', t.ratingBad, t.ratingPoor, t.ratingOk, t.ratingGood, t.ratingExcellent][userRating]}` : t.rateWaterQualitySubtitle}
+              </p>
+              
+              <div className="rating-emojis">
+                <button 
+                  className={`emoji-button ${userRating === 1 ? 'active' : ''}`}
+                  aria-label={t.ratingBad}
+                  onClick={() => handleRating(1)}
+                  disabled={isSubmittingRating}
+                >
+                  <span className="emoji">😡</span>
+                  <span className="emoji-label">{t.ratingBad}</span>
+                </button>
+                <button 
+                  className={`emoji-button ${userRating === 2 ? 'active' : ''}`}
+                  aria-label={t.ratingPoor}
+                  onClick={() => handleRating(2)}
+                  disabled={isSubmittingRating}
+                >
+                  <span className="emoji">😕</span>
+                  <span className="emoji-label">{t.ratingPoor}</span>
+                </button>
+                <button 
+                  className={`emoji-button ${userRating === 3 ? 'active' : ''}`}
+                  aria-label={t.ratingOk}
+                  onClick={() => handleRating(3)}
+                  disabled={isSubmittingRating}
+                >
+                  <span className="emoji">😐</span>
+                  <span className="emoji-label">{t.ratingOk}</span>
+                </button>
+                <button 
+                  className={`emoji-button ${userRating === 4 ? 'active' : ''}`}
+                  aria-label={t.ratingGood}
+                  onClick={() => handleRating(4)}
+                  disabled={isSubmittingRating}
+                >
+                  <span className="emoji">🙂</span>
+                  <span className="emoji-label">{t.ratingGood}</span>
+                </button>
+                <button 
+                  className={`emoji-button ${userRating === 5 ? 'active' : ''}`}
+                  aria-label={t.ratingExcellent}
+                  onClick={() => handleRating(5)}
+                  disabled={isSubmittingRating}
+                >
+                  <span className="emoji">😍</span>
+                  <span className="emoji-label">{t.ratingExcellent}</span>
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="section-subtitle" style={{ fontStyle: 'italic', color: '#666' }}>
+              {t.signInToRate}
+            </p>
+          )}
         </div>
 
         {fountain.description && (

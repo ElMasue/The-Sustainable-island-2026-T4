@@ -273,4 +273,165 @@ export async function getUserInteractions(userId: string, interactionType?: 'fav
   }));
 }
 
+// ==================== Water Quality Ratings ====================
+const RATINGS_TABLE = 'water_quality_ratings';
+
+export interface WaterQualityRatingInput {
+  userId: string;
+  fountainId: string;
+  qualityRating: 1 | 2 | 3 | 4 | 5; // bad, poor, ok, good, excellent
+  fountainName?: string;
+  fountainLat?: number;
+  fountainLon?: number;
+}
+
+export interface WaterQualityRatingResponse {
+  id: string;
+  userId: string;
+  fountainId: string;
+  qualityRating: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WaterQualityStatsResponse {
+  averageRating: number;
+  totalRatings: number;
+  distribution: {
+    bad: number;      // 1
+    poor: number;     // 2
+    ok: number;       // 3
+    good: number;     // 4
+    excellent: number; // 5
+  };
+}
+
+/**
+ * Adds or updates a user's water quality rating for a fountain
+ * Uses upsert to handle both create and update cases
+ */
+export async function upsertWaterQualityRating(input: WaterQualityRatingInput): Promise<WaterQualityRatingResponse | null> {
+  if (!supabase) {
+    console.error('Supabase client not initialized');
+    return null;
+  }
+
+  const row = {
+    user_id: input.userId,
+    fountain_id: input.fountainId,
+    quality_rating: input.qualityRating,
+    fountain_name: input.fountainName ?? null,
+    fountain_lat: input.fountainLat ?? null,
+    fountain_lon: input.fountainLon ?? null,
+  };
+
+  const { data, error } = await supabase
+    .from(RATINGS_TABLE)
+    .upsert(row, { onConflict: 'user_id,fountain_id' })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('supabase upsertWaterQualityRating error', error);
+    return null;
+  }
+
+  if (!data) {
+    console.warn('supabase upsertWaterQualityRating returned no data');
+    return null;
+  }
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    fountainId: data.fountain_id,
+    qualityRating: data.quality_rating,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+}
+
+/**
+ * Gets a specific user's rating for a fountain
+ */
+export async function getUserRatingForFountain(userId: string, fountainId: string): Promise<WaterQualityRatingResponse | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from(RATINGS_TABLE)
+    .select('id, user_id, fountain_id, quality_rating, created_at, updated_at')
+    .eq('user_id', userId)
+    .eq('fountain_id', fountainId)
+    .single();
+
+  if (error) {
+    // If no rating exists, error code is PGRST116
+    if (error.code === 'PGRST116') return null;
+    console.error('supabase getUserRatingForFountain error', error);
+    return null;
+  }
+
+  if (!data) return null;
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    fountainId: data.fountain_id,
+    qualityRating: data.quality_rating,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+}
+
+/**
+ * Gets water quality statistics for a fountain
+ * Calculates average rating, total ratings, and distribution
+ */
+export async function getWaterQualityStats(fountainId: string): Promise<WaterQualityStatsResponse | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from(RATINGS_TABLE)
+    .select('quality_rating')
+    .eq('fountain_id', fountainId);
+
+  if (error) {
+    console.error('supabase getWaterQualityStats error', error);
+    return null;
+  }
+
+  if (!data || data.length === 0) {
+    return {
+      averageRating: 0,
+      totalRatings: 0,
+      distribution: {
+        bad: 0,
+        poor: 0,
+        ok: 0,
+        good: 0,
+        excellent: 0,
+      },
+    };
+  }
+
+  const ratings = data.map((r: any) => r.quality_rating);
+  const totalRatings = ratings.length;
+  const sum = ratings.reduce((acc: number, val: number) => acc + val, 0);
+  const averageRating = sum / totalRatings;
+
+  const distribution = {
+    bad: ratings.filter((r: number) => r === 1).length,
+    poor: ratings.filter((r: number) => r === 2).length,
+    ok: ratings.filter((r: number) => r === 3).length,
+    good: ratings.filter((r: number) => r === 4).length,
+    excellent: ratings.filter((r: number) => r === 5).length,
+  };
+
+  return {
+    averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+    totalRatings,
+    distribution,
+  };
+}
+
 
