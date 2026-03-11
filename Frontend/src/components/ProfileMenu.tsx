@@ -4,25 +4,40 @@ import './ProfileMenu.css';
 import { useAuth } from '../context/AuthContext';
 import { useAppSettings } from '../context/AppSettingsContext';
 import { useTranslation } from '../i18n';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { SupportedLanguage } from '../services/translationService';
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+
+interface Interaction {
+  fountainId: string;
+  fountainName: string | null;
+  fountainLat: number | null;
+  fountainLon: number | null;
+  createdAt: string;
+}
 
 interface ProfileMenuProps {
   onClose?: () => void;
+  onSelectFountain?: (fountain: any) => void;
 }
 
-function ProfileMenu({ onClose }: ProfileMenuProps) {
+function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
   const navigate = useNavigate();
   const { isLoggedIn, logout, fullName, user, updateProfile, avatarUrl, uploadAvatar } = useAuth();
   const { language, darkMode, setLanguage, toggleDarkMode } = useAppSettings();
   const t = useTranslation();
-  const [showSettings, setShowSettings] = useState(false);
-  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  
+  type ViewState = 'main' | 'settings' | 'language' | 'favorites' | 'saved';
+  const [view, setView] = useState<ViewState>('main');
+  
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [savingName, setSavingName] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [interactionList, setInteractionList] = useState<Interaction[]>([]);
+  const [loadingList, setLoadingList] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Email users can change their avatar; OAuth users (Google/Apple) keep their provider photo
@@ -91,27 +106,51 @@ function ProfileMenu({ onClose }: ProfileMenuProps) {
     }
   };
 
-  const openSettings = () => setShowSettings(true);
+  const openSettings = () => setView('settings');
+  const openLanguageMenu = () => setView('language');
+  const openFavorites = () => setView('favorites');
+  const openSaved = () => setView('saved');
+
   const backToMenu = () => {
-    setShowSettings(false);
-    setShowLanguageMenu(false);
+    setView('main');
   };
-  
-  const openLanguageMenu = () => setShowLanguageMenu(true);
   
   const selectLanguage = (lang: SupportedLanguage) => {
     setLanguage(lang);
-    setShowLanguageMenu(false);
+    setView('settings'); // Go back to settings after selecting language
   };
+
+  useEffect(() => {
+    const fetchInteractions = async () => {
+      if (!user || (view !== 'favorites' && view !== 'saved')) return;
+      
+      const type = view === 'favorites' ? 'favorite' : 'save';
+      setLoadingList(true);
+      try {
+        const response = await fetch(`${API_BASE}/api/interactions/${type}?userId=${user.id}`);
+        if (!response.ok) throw new Error(`Failed to fetch ${type}s`);
+        const data = await response.json();
+        setInteractionList(data);
+      } catch (err) {
+        console.error(`Error fetching ${type}s:`, err);
+      } finally {
+        setLoadingList(false);
+      }
+    };
+    
+    fetchInteractions();
+  }, [view, user]);
   
   return (
     <div className="profile-menu">
       <div className="profile-menu-header">
-        {showSettings || showLanguageMenu ? (
+        {view !== 'main' ? (
           <div className="settings-header">
             <button className="back-button" onClick={backToMenu}>&larr;</button>
             <span className="settings-title">
-              {showLanguageMenu ? t.language : t.settings}
+              {view === 'language' ? t.language : 
+               view === 'settings' ? t.settings : 
+               view === 'favorites' ? t.favorites : t.saved}
             </span>
           </div>
         ) : (
@@ -189,7 +228,7 @@ function ProfileMenu({ onClose }: ProfileMenuProps) {
       </div>
 
       <div className="profile-menu-content">
-        {showLanguageMenu ? (
+        {view === 'language' ? (
           <>
             {(['en', 'es', 'da', 'is'] as SupportedLanguage[]).map((lang) => (
               <MenuItem
@@ -201,29 +240,81 @@ function ProfileMenu({ onClose }: ProfileMenuProps) {
               />
             ))}
           </>
-        ) : isLoggedIn && !showSettings ? (
+        ) : view === 'favorites' || view === 'saved' ? (
+          <div className="interaction-list-container" style={{ padding: '0 1rem' }}>
+            {loadingList ? (
+              <p style={{ textAlign: 'center', padding: '1rem', color: '#666' }}>{t.loading}...</p>
+            ) : interactionList.length === 0 ? (
+              <p style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+                {view === 'favorites' ? 'No favorited fountains yet.' : 'No saved fountains yet.'}
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+                {interactionList.map((item) => (
+                  <div key={item.fountainId} className="interaction-menu-item" style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    padding: '0.875rem',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    cursor: 'pointer'
+                  }} onClick={() => {
+                    const fountain = {
+                      id: item.fountainId,
+                      name: item.fountainName || 'Unnamed Fountain',
+                      latitude: item.fountainLat || 0,
+                      longitude: item.fountainLon || 0,
+                      isOperational: true // Default for list view
+                    };
+                    onSelectFountain?.(fountain);
+                    onClose?.();
+                  }}>
+                    <div style={{ overflow: 'hidden' }}>
+                      <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: '#333' }}>
+                        {item.fountainName || 'Unnamed Fountain'}
+                      </h4>
+                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#888' }}>
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    {view === 'favorites' ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="#ff4081" stroke="none">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffd600" stroke="none">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : isLoggedIn && view === 'main' ? (
           <>
             <MenuItem
               icon={
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M5 2h14a1 1 0 0 1 1 1v19.143a.5.5 0 0 1-.766.424L12 18.03l-7.234 4.536A.5.5 0 0 1 4 22.143V3a1 1 0 0 1 1-1z"/>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4081" stroke="none">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                 </svg>
               }
               title={t.favorites}
               subtitle={t.favoriteRefillStations}
-              onClick={() => {}}
+              onClick={openFavorites}
             />
 
             <MenuItem
               icon={
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                  <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffd600" stroke="none">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                 </svg>
               }
               title={t.saved}
               subtitle={t.findSavedLocations}
-              onClick={() => {}}
+              onClick={openSaved}
             />
 
             <MenuItem
@@ -243,7 +334,7 @@ function ProfileMenu({ onClose }: ProfileMenuProps) {
           </>
         ) : null}
 
-        {!showSettings && !showLanguageMenu && (
+        {view === 'main' && (
           <MenuItem
             icon={
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -255,7 +346,7 @@ function ProfileMenu({ onClose }: ProfileMenuProps) {
           />
         )}
 
-        {showSettings ? (
+        {view === 'settings' ? (
           <>
             <MenuItem
               icon={<span style={{ fontSize: 24 }}>{languageEmojis[language]}</span>}
@@ -278,7 +369,7 @@ function ProfileMenu({ onClose }: ProfileMenuProps) {
               onClick={toggleDarkMode}
             />
           </>
-        ) : !showLanguageMenu ? (
+        ) : view === 'main' ? (
           <MenuItem
             icon={
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

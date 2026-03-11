@@ -112,7 +112,10 @@ function Home() {
       ) : sheetContent === 'detail' ? (
         selectedFountain && <FountainDetail fountain={selectedFountain} onBack={handleBackToList} />
       ) : (
-        <ProfileMenu onClose={() => setSheetContent('list')} />
+        <ProfileMenu 
+          onClose={() => setSheetContent('list')} 
+          onSelectFountain={handleFountainClick}
+        />
       )}
     </>
   );

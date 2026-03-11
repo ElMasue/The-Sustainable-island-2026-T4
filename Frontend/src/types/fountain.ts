@@ -1,5 +1,5 @@
 export interface Fountain {
-  id: number;
+  id: string | number;
   name: string;
   latitude: number;
   longitude: number;

@@ -21,7 +21,14 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // Water fountains routes (fetch from Supabase)
-import { getWaterSources, createWaterSource, updateWaterSource } from './supabase';
+import {
+  getWaterSources,
+  createWaterSource,
+  updateWaterSource,
+  addFountainInteraction,
+  removeFountainInteraction,
+  getUserInteractions
+} from './supabase';
 import { fetchOSMFountains } from './osmService';
 
 app.get('/api/fountains', async (req: Request, res: Response) => {
@@ -118,6 +125,78 @@ app.put('/api/fountains/:id', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to update fountain' });
   }
 });
+
+// Interaction routes
+app.get('/api/interactions/:type', async (req: Request, res: Response) => {
+  try {
+    const { type } = req.params;
+    const userId = req.query.userId as string;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId query parameter' });
+    }
+
+    if (type !== 'favorite' && type !== 'save') {
+      return res.status(400).json({ error: 'Invalid interaction type' });
+    }
+
+    const interactions = await getUserInteractions(userId, type);
+    res.json(interactions);
+  } catch (e) {
+    console.error('GET /api/interactions', e);
+    res.status(500).json({ error: 'Failed to fetch interactions' });
+  }
+});
+
+app.post('/api/interactions', async (req: Request, res: Response) => {
+  try {
+    const { userId, fountainId, interactionType, fountainName, fountainLat, fountainLon } = req.body;
+
+    if (!userId || !fountainId || !interactionType) {
+      return res.status(400).json({ error: 'Missing required fields: userId, fountainId, interactionType' });
+    }
+
+    const success = await addFountainInteraction({
+      userId,
+      fountainId: fountainId.toString(),
+      interactionType,
+      fountainName,
+      fountainLat,
+      fountainLon
+    });
+
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to add interaction' });
+    }
+
+    res.status(201).json({ message: 'Interaction added successfully' });
+  } catch (e) {
+    console.error('POST /api/interactions', e);
+    res.status(500).json({ error: 'Failed to add interaction' });
+  }
+});
+
+app.delete('/api/interactions', async (req: Request, res: Response) => {
+  try {
+    const { userId, fountainId, interactionType } = req.body;
+
+    if (!userId || !fountainId || !interactionType) {
+      return res.status(400).json({ error: 'Missing required fields: userId, fountainId, interactionType' });
+    }
+
+    const success = await removeFountainInteraction(userId, fountainId.toString(), interactionType);
+
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to remove interaction' });
+    }
+
+    res.json({ message: 'Interaction removed successfully' });
+  } catch (e) {
+    console.error('DELETE /api/interactions', e);
+    res.status(500).json({ error: 'Failed to remove interaction' });
+  }
+});
+
 
 // Start server
 app.listen(PORT, () => {
