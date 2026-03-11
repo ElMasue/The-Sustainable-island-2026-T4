@@ -225,3 +225,11 @@ body.dark-mode .add-site-fab {
   background: linear-gradient(135deg, #4F7CAC 0%, #5a8fc4 100%);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
+
+/* Hide UI elements when image lightbox is open */
+body.lightbox-open .panel-toggle-btn,
+body.lightbox-open .add-site-fab {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
