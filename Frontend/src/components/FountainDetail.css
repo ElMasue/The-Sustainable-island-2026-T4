@@ -121,6 +121,16 @@
   white-space: nowrap;
 }
 
+.status-active {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.status-inactive {
+  background: #ffebee;
+  color: #f44336;
+}
+
 .meta-rating {
   display: flex;
   align-items: center;
@@ -313,6 +323,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -332,6 +343,7 @@
     transform: scale(0.8);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;

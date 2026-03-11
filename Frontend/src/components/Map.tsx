@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import type { Fountain } from '../types/fountain';
 import { useTranslation } from '../i18n';
 import userPinIcon from '../assets/icons/UserPin.svg';
+import userPinBlueIcon from '../assets/icons/UserPinBlue.svg';
 import './Map.css';
 
 interface MapProps {
@@ -13,6 +14,7 @@ interface MapProps {
   zoom?: number;
   selectedFountain?: Fountain | null;
   onMapClick?: () => void;
+  onFountainClick?: (fountain: Fountain) => void;
 }
 
 // [latitude, longitude] to match rest of app
@@ -58,6 +60,7 @@ function Map({
   zoom = DEFAULT_ZOOM,
   selectedFountain,
   onMapClick,
+  onFountainClick,
 }: MapProps) {
   const t = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -106,27 +109,30 @@ function Map({
 
     layer.clearLayers();
 
-    const fountainIcon = new L.Icon({
-      iconUrl: userPinIcon,
+    const osmFountainIcon = new L.Icon({
+      iconUrl: userPinIcon, // Orange
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+    });
+
+    const dbFountainIcon = new L.Icon({
+      iconUrl: userPinBlueIcon, // Blue
       iconSize: [30, 30],
       iconAnchor: [15, 30],
     });
 
     fountains.forEach((f) => {
-      const marker = L.marker([f.latitude, f.longitude], { icon: fountainIcon });
-      const popupHtml = `
-        <div class="fountain-popup">
-          <h3>${f.name}</h3>
-          ${f.description ? `<p>${f.description}</p>` : ''}
-          <span class="${f.isOperational ? 'status-active' : 'status-inactive'}">
-            ${f.isOperational ? `✓ ${t.operational}` : `✗ ${t.notOperational}`}
-          </span>
-        </div>
-      `;
-      marker.bindPopup(popupHtml, { closeOnClick: false, autoClose: false });
+      const isOSM = typeof f.id === 'string' ? (f.id as string).startsWith('-') : f.id < 0;
+      const markerIcon = isOSM ? osmFountainIcon : dbFountainIcon;
+
+      const marker = L.marker([f.latitude, f.longitude], { icon: markerIcon });
+      marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        onFountainClick?.(f);
+      });
       layer.addLayer(marker);
     });
-  }, [fountains, t]);
+  }, [fountains, onFountainClick, t]);
 
   // ── Update user-location layer when position changes ──────────
   useEffect(() => {

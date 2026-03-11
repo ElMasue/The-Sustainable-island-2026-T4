@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Fountain } from '../types/fountain';
 import { useTranslation } from '../i18n';
 import { translateCategory } from '../i18n/translations';
 import { useAppSettings } from '../context/AppSettingsContext';
+import { useAuth } from '../context/AuthContext';
 import { translateText } from '../services/translationService';
 import './FountainDetail.css';
 
@@ -12,6 +14,9 @@ interface FountainDetailProps {
 }
 
 function FountainDetail({ fountain, onBack }: FountainDetailProps) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   const t = useTranslation();
   const { language } = useAppSettings();
   const [translatedDescription, setTranslatedDescription] = useState(fountain.description || '');
@@ -104,18 +109,34 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
         <div className="fountain-detail-title-section">
           <div className="fountain-detail-title-row">
             <h2 className="fountain-detail-title">{fountain.name}</h2>
-            {onBack && (
-              <button 
-                className="fountain-detail-back-button" 
-                onClick={onBack}
-                aria-label="Back to list"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-                <span>Back to list</span>
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {user?.id === fountain.userId && (
+                <button
+                  className="fountain-detail-back-button"
+                  style={{ color: '#1976d2', backgroundColor: '#e3f2fd' }}
+                  onClick={() => navigate(`/edit-site/${fountain.id}`)}
+                  aria-label="Edit Fountain"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  <span>Edit</span>
+                </button>
+              )}
+              {onBack && (
+                <button 
+                  className="fountain-detail-back-button" 
+                  onClick={onBack}
+                  aria-label="Back to list"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                  </svg>
+                  <span>Back</span>
+                </button>
+              )}
+            </div>
           </div>
           {fountain.category && (
             <span className="fountain-detail-category">
@@ -128,6 +149,9 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
           {fountain.isFree && (
             <span className="meta-badge">{t.free}</span>
           )}
+          <span className={`meta-badge status-badge ${fountain.isOperational ? 'status-active' : 'status-inactive'}`}>
+            {fountain.isOperational ? `✓ ${t.operational}` : `✗ ${t.notOperational}`}
+          </span>
           {fountain.rating !== undefined && (
             <div className="meta-rating">
               <span className="rating-value">{fountain.rating}</span>
