@@ -281,7 +281,6 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
                       isOperational: true // Default for list view
                     };
                     onSelectFountain?.(fountain);
-                    onClose?.();
                   }}>
                     <div style={{ overflow: 'hidden' }}>
                       <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: '#333' }}>
