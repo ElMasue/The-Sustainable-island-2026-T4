@@ -65,7 +65,14 @@ export interface Translations {
   selected: string;
   guest: string;
   refills: string;
+  refillSingle: string;
+  noRefillsYet: string;
   clickToChangePhoto: string;
+  logARefill: string;
+  logARefillSubtitle: string;
+  logRefillHere: string;
+  refillLoggedSuccess: string;
+  refillLoggedError: string;
 
   // Map
   goToMyLocation: string;
@@ -164,8 +171,15 @@ export const translations: Record<SupportedLanguage, Translations> = {
     bright: 'Bright',
     selected: '✓ Selected',
     guest: 'Guest',
-    refills: 'Refills',
+    refills: 'refills',
+    refillSingle: 'refill',
+    noRefillsYet: 'No refills yet',
     clickToChangePhoto: 'Click to change photo',
+    logARefill: 'Log a refill',
+    logARefillSubtitle: "Count a refill (e.g. if you didn't tap at the station)",
+    logRefillHere: 'Log refill here',
+    refillLoggedSuccess: 'Refill logged successfully!',
+    refillLoggedError: 'Failed to log refill. Try again later.',
 
     // Map
     goToMyLocation: 'Go to my location',
@@ -263,8 +277,15 @@ export const translations: Record<SupportedLanguage, Translations> = {
     bright: 'Claro',
     selected: '✓ Seleccionado',
     guest: 'Invitado',
-    refills: 'Recargas',
+    refills: 'recargas',
+    refillSingle: 'recarga',
+    noRefillsYet: 'Aún no hay recargas',
     clickToChangePhoto: 'Click para cambiar foto',
+    logARefill: 'Registrar recarga',
+    logARefillSubtitle: 'Contabiliza una recarga manual de agua',
+    logRefillHere: 'Añadir recarga aquí',
+    refillLoggedSuccess: '¡Recarga registrada con éxito!',
+    refillLoggedError: 'Error al registrar la recarga. Inténtalo de nuevo.',
 
     // Map
     goToMyLocation: 'Ir a mi ubicación',
@@ -362,8 +383,15 @@ export const translations: Record<SupportedLanguage, Translations> = {
     bright: 'Lys',
     selected: '✓ Valgt',
     guest: 'Gæst',
-    refills: 'Genopfyldninger',
+    refills: 'genopfyldninger',
+    refillSingle: 'genopfyldning',
+    noRefillsYet: 'Ingen genopfyldninger endnu',
     clickToChangePhoto: 'Klik for at ændre foto',
+    logARefill: 'Registrer genopfyldning',
+    logARefillSubtitle: 'Tæl en genopfyldning',
+    logRefillHere: 'Registrer genopfyldning her',
+    refillLoggedSuccess: 'Genopfyldning registreret!',
+    refillLoggedError: 'Kunne ikke registrere genopfyldning. Prøv igen senere.',
 
     // Map
     goToMyLocation: 'Gå til min placering',
@@ -461,8 +489,15 @@ export const translations: Record<SupportedLanguage, Translations> = {
     bright: 'Bjart',
     selected: '✓ Valið',
     guest: 'Gestur',
-    refills: 'Áfyllingar',
+    refills: 'áfyllingar',
+    refillSingle: 'áfyllingu',
+    noRefillsYet: 'Engar áfyllingar ennþá',
     clickToChangePhoto: 'Smelltu til að breyta mynd',
+    logARefill: 'Skrá áfyllingu',
+    logARefillSubtitle: 'Telja áfyllingu',
+    logRefillHere: 'Skrá áfyllingu hér',
+    refillLoggedSuccess: 'Áfylling skráð!',
+    refillLoggedError: 'Mistókst að skrá áfyllingu. Reyndu aftur síðar.',
 
     // Map
     goToMyLocation: 'Fara á mína staðsetningu',

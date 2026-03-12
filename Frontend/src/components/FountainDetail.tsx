@@ -9,15 +9,20 @@ import { FountainDetailHeader } from "./FountainDetail/FountainDetailHeader";
 import { FountainDetailMeta } from "./FountainDetail/FountainDetailMeta";
 import { FountainDetailRating } from "./FountainDetail/FountainDetailRating";
 import { FountainDetailLightbox } from "./FountainDetail/FountainDetailLightbox";
+import { RefillOvalIcon } from "../assets/icons/RefillOval";
 import "./FountainDetail.css";
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
 
 interface FountainDetailProps {
   fountain: Fountain;
   onBack?: () => void;
+  canRefill?: boolean;
+  isLogging?: boolean;
+  /** Called whenever proximity/state changes so the parent can render the button above the sheet */
+  onRefillReady?: (state: { canRefill: boolean; isLogging: boolean; logRefill: () => void }) => void;
 }
 
-function FountainDetail({ fountain, onBack }: FountainDetailProps) {
+function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady }: FountainDetailProps) {
   const { user } = useAuth();
 
   const t = useTranslation();
@@ -48,6 +53,9 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
     };
   } | null>(null);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
+  // In-Place Refill Logging state
+  const [isLoggingRefill, setIsLoggingRefill] = useState(false);
 
   const openLightbox = (index: number) => {
     setExpandedImageIndex(index);
@@ -348,37 +356,81 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
     }
   };
 
+  const handleLogRefill = async () => {
+    if (!user || isLoggingRefill) return;
+    setIsLoggingRefill(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/refills`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userId: user.id,
+          waterSourceId: fountain.id.toString()
+        }),
+      });
+      
+      if (response.ok) {
+        console.log("Refill logged in-place:", fountain.name);
+        alert(t.refillLoggedSuccess);
+      } else {
+        alert(t.refillLoggedError);
+      }
+    } catch (err) {
+      console.error('Error logging refill in-place:', err);
+      alert(t.refillLoggedError);
+    } finally {
+      setIsLoggingRefill(false);
+    }
+  };
+
+  // Proximity logic is now handled globally in Home.tsx.
+  const isCloseEnoughToLog = canRefill;
+  const isLoggingRefillLocal = isLogging ?? isLoggingRefill; 
+
+  useEffect(() => {
+    onRefillReady?.({
+      canRefill: Boolean(isCloseEnoughToLog),
+      isLogging: isLoggingRefill,
+      logRefill: handleLogRefill,
+    });
+  }, [isCloseEnoughToLog, isLoggingRefill, fountain.id]);
+
   return (
     <div className="fountain-detail">
-      <FountainDetailMap fountain={fountain} />
+      <div className="fountain-detail-container">
+        <div className="fountain-detail-map-container">
+          <FountainDetailMap fountain={fountain} />
 
-      <div className="fountain-detail-content">
-        <FountainDetailHeader
-          fountain={fountain}
-          user={user}
-          isFavorited={isFavorited}
-          isSaved={isSaved}
-          isLoadingInteractions={isLoadingInteractions}
-          toggleInteraction={toggleInteraction}
-          onBack={onBack}
-        />
-
-        <FountainDetailMeta fountain={fountain} />
-
-        <div className="fountain-detail-actions">
-          <a
-            href={`https://www.google.com/maps/dir/?api=1&destination=${fountain.latitude},${fountain.longitude}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="directions-button"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-            </svg>
-            {t.getDirections}
-          </a>
+          {/* Desktop only: refill button floats in the map overlay */}
+          {isCloseEnoughToLog && (
+            <div className="fountain-detail-map-overlay">
+              <button
+                className={`fountain-detail-log-refill fountain-detail-log-refill--desktop${isLoggingRefillLocal ? ' logging' : ''}`}
+                onClick={handleLogRefill}
+                disabled={isLoggingRefillLocal}
+                aria-label={t.logRefillHere}
+                title={t.logRefillHere}
+              >
+                <RefillOvalIcon />
+              </button>
+            </div>
+          )}
         </div>
+        
+        <div className="fountain-detail-content">
+          <FountainDetailHeader
+            fountain={fountain}
+            user={user}
+            isFavorited={isFavorited}
+            isSaved={isSaved}
+            isLoadingInteractions={isLoadingInteractions}
+            toggleInteraction={toggleInteraction}
+            onBack={onBack}
+          />
+
+          <FountainDetailMeta fountain={fountain} />
 
         {fountain.images && fountain.images.length > 0 && (
           <div className="fountain-detail-images">
@@ -420,7 +472,7 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
             <p className="section-text">{fountain.distance}</p>
           </div>
         )}
-      </div>
+      </div></div>
 
       {expandedImageIndex !== null && fountain.images && (
         <FountainDetailLightbox

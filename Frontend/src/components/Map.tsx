@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -15,6 +15,10 @@ interface MapProps {
   selectedFountain?: Fountain | null;
   onMapClick?: () => void;
   onFountainClick?: (fountain: Fountain) => void;
+  userPos?: [number, number] | null;
+  accuracy?: number | null;
+  geoStatus?: 'idle' | 'watching' | 'denied';
+  onLocateMe?: () => void;
 }
 
 // [latitude, longitude] to match rest of app
@@ -47,13 +51,6 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [20, 20],
 });
 
-// ── Geolocation options (max precision) ─────────────────────────
-const GEO_OPTIONS: PositionOptions = {
-  enableHighAccuracy: true,
-  maximumAge: 5_000,   // use cached fix if <5 s old
-  timeout: 15_000,
-};
-
 function Map({
   fountains,
   center = DEFAULT_CENTER,
@@ -61,6 +58,10 @@ function Map({
   selectedFountain,
   onMapClick,
   onFountainClick,
+  userPos,
+  accuracy,
+  geoStatus = 'idle',
+  onLocateMe,
 }: MapProps) {
   const t = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,10 +69,6 @@ function Map({
   // Refs for user-location layer so we can update without rebuilding the map
   const userMarkerRef = useRef<L.Marker | null>(null);
   const accuracyCircleRef = useRef<L.Circle | null>(null);
-
-  const [geoStatus, setGeoStatus] = useState<'idle' | 'watching' | 'denied'>('idle');
-  const [userPos, setUserPos] = useState<[number, number] | null>(null);
-  const watchIdRef = useRef<number | null>(null);
   const fountainsLayerRef = useRef<L.LayerGroup | null>(null);
 
   // ── Build / tear-down the map (runs ONCE) ─────────────────────────
@@ -147,7 +144,24 @@ function Map({
     } else {
       userMarkerRef.current.setLatLng(userPos);
     }
-  }, [userPos]);
+
+    // Update / create accuracy circle
+    if (accuracy !== null && accuracy !== undefined) {
+      if (!accuracyCircleRef.current) {
+        accuracyCircleRef.current = L.circle(userPos, {
+          radius: accuracy,
+          color: '#4A90E2',
+          fillColor: '#4A90E2',
+          fillOpacity: 0.12,
+          weight: 1,
+          className: 'accuracy-circle',
+        }).addTo(map);
+      } else {
+        accuracyCircleRef.current.setLatLng(userPos);
+        accuracyCircleRef.current.setRadius(accuracy);
+      }
+    }
+  }, [userPos, accuracy]);
 
   // ── Fly to selected fountain ───────────────────────────────────
   useEffect(() => {
@@ -160,77 +174,7 @@ function Map({
     }
   }, [selectedFountain]);
 
-  // ── Start / stop watchPosition ─────────────────────────────────
-  const startWatching = useCallback(() => {
-    if (!navigator.geolocation) {
-      setGeoStatus('denied');
-      return;
-    }
-    setGeoStatus('watching');
-
-    const onSuccess = (pos: GeolocationPosition) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      const accuracy = pos.coords.accuracy; // metres
-
-      setUserPos([lat, lon]);
-
-      const map = mapInstanceRef.current;
-      if (!map) return;
-
-      // Update / create accuracy circle
-      if (!accuracyCircleRef.current) {
-        accuracyCircleRef.current = L.circle([lat, lon], {
-          radius: accuracy,
-          color: '#4A90E2',
-          fillColor: '#4A90E2',
-          fillOpacity: 0.12,
-          weight: 1,
-          className: 'accuracy-circle',
-        }).addTo(map);
-      } else {
-        accuracyCircleRef.current.setLatLng([lat, lon]);
-        accuracyCircleRef.current.setRadius(accuracy);
-      }
-    };
-
-    const onError = (err: GeolocationPositionError) => {
-      console.warn('[Geo] error', err.code, err.message);
-      if (err.code === err.PERMISSION_DENIED) setGeoStatus('denied');
-    };
-
-    // First get a fast fix, then watch for updates
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        onSuccess(pos);
-        // Fly to user once on first fix
-        mapInstanceRef.current?.flyTo(
-          [pos.coords.latitude, pos.coords.longitude],
-          15,
-          { duration: 1.2 }
-        );
-      },
-      onError,
-      GEO_OPTIONS
-    );
-
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      onSuccess,
-      onError,
-      GEO_OPTIONS
-    );
-  }, []);
-
-  // Auto-start on mount so the user sees their position immediately
-  useEffect(() => {
-    startWatching();
-    return () => {
-      if (watchIdRef.current !== null) {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        navigator.geolocation.clearWatch(watchIdRef.current);
-      }
-    };
-  }, [startWatching]);
+  // Removed internal watchPosition logic, now handled by useGeolocation in parent
 
   // ── Device Orientation for Compass ──────────────────────────────
   useEffect(() => {
@@ -277,24 +221,9 @@ function Map({
 
   // ── Fly to current user position when user presses the button ──
   const handleLocateClick = async () => {
-    // Request permission for iOS 13+ devices
-    if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-      try {
-        const permissionState = await (DeviceOrientationEvent as any).requestPermission();
-        if (permissionState !== 'granted') {
-          console.warn('Device orientation permission denied');
-        }
-      } catch (e) {
-        console.error('Error requesting orientation permission', e);
-      }
-    }
+    onLocateMe?.();
 
     if (geoStatus === 'denied') return;
-
-    if (geoStatus === 'idle') {
-      startWatching();
-      return;
-    }
 
     // Already watching — just fly to current position
     if (userPos && mapInstanceRef.current) {

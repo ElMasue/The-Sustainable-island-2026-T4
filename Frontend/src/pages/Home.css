@@ -178,6 +178,27 @@ body.dark-mode .panel-toggle-btn:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
+/* Floating refill button just above the bottom sheet (mobile only) */
+.home__refill-above-sheet {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* nudge it just above the sheet edge + the drag handle */
+  margin-bottom: 12px;
+}
+
+/* Hide on desktop (side panel is used there, not the bottom sheet) */
+@media (min-width: 1024px) {
+  .home__refill-above-sheet {
+    display: none;
+  }
+}
+
 /* Floating Action Button for adding new site */
 .add-site-fab {
   position: fixed;

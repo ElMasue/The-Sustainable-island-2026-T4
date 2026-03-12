@@ -10,8 +10,10 @@ import {
   SidePanel,
   UserButton,
 } from '../components';
+import { RefillOvalIcon } from '../assets/icons/RefillOval';
 import type { Fountain } from '../types/fountain';
 import { useAuth } from '../context/AuthContext';
+import { useGeolocation } from '../hooks/useGeolocation';
 import './Home.css';
 
 type SheetContent = 'list' | 'detail' | 'profile';
@@ -19,10 +21,11 @@ type SheetContent = 'list' | 'detail' | 'profile';
 function Home() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { avatarUrl } = useAuth();
+  const { user, avatarUrl } = useAuth();
   const [fountains, setFountains] = useState<Fountain[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFountain, setSelectedFountain] = useState<Fountain | null>(null);
+  const { userPos, accuracy, geoStatus, startWatching } = useGeolocation();
 
   // fetch list from backend
   // fall back to localhost:3000 if the env var isn't set (avoids hitting Vite's own server)
@@ -85,6 +88,84 @@ function Home() {
     }
   }, [location]);
 
+  const [refillState, setRefillState] = useState<{
+    canRefill: boolean;
+    isLogging: boolean;
+    logRefill: (fountainIdOverride?: string) => void;
+    nearbyFountainId?: string;
+  } | null>(null);
+
+  const SNAP_POINTS = [35, 60, 90];
+
+  const handleLogRefill = async (fountainId: string) => {
+    if (!user || refillState?.isLogging) return;
+    setRefillState(prev => prev ? { ...prev, isLogging: true } : null);
+    try {
+      const response = await fetch(`${API_BASE}/api/refills`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userId: user?.id,
+          waterSourceId: fountainId
+        }),
+      });
+      
+      if (response.ok) {
+        alert('Refill logged successfully!');
+      } else {
+        alert('Error logging refill.');
+      }
+    } catch (err) {
+      console.error('Error logging refill:', err);
+      alert('Error logging refill.');
+    } finally {
+      setRefillState(prev => prev ? { ...prev, isLogging: false } : null);
+    }
+  };
+
+  // Proactive proximity check
+  useEffect(() => {
+    if (!userPos || fountains.length === 0) return;
+
+    const R = 6371e3; // metres
+    const lat1 = (userPos[0] * Math.PI) / 180;
+
+    let nearestFountain: Fountain | null = null;
+    let minDistance = 501; // Only care if <= 500m
+
+    fountains.forEach(f => {
+      const lat2 = (f.latitude * Math.PI) / 180;
+      const deltaLat = ((f.latitude - userPos[0]) * Math.PI) / 180;
+      const deltaLon = ((f.longitude - userPos[1]) * Math.PI) / 180;
+
+      const a =
+        Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+        Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const d = R * c;
+
+      if (d < minDistance) {
+        minDistance = d;
+        nearestFountain = f;
+      }
+    });
+
+    if (nearestFountain) {
+      const fountainId = (nearestFountain as Fountain).id.toString();
+      setRefillState({
+        canRefill: true,
+        isLogging: refillState?.isLogging || false,
+        logRefill: (id) => handleLogRefill(id || fountainId),
+        nearbyFountainId: fountainId
+      });
+    } else if (!selectedFountain) {
+      // Clear proactive refill state if no fountain is nearby and none selected
+      setRefillState(null);
+    }
+  }, [userPos, fountains, user?.id]);
+
   const handleFountainClick = (fountain: Fountain) => {
     setSelectedFountain(fountain);
     setSheetContent('detail');
@@ -114,6 +195,7 @@ function Home() {
     setSheetContent('list');
     setSelectedFountain(null);
     setCurrentSnap(0);
+    setRefillState(null);
   };
 
   const panelContent = (
@@ -121,7 +203,13 @@ function Home() {
       {sheetContent === 'list' ? (
         <FountainsList fountains={fountains} onFountainClick={handleFountainClick} />
       ) : sheetContent === 'detail' ? (
-        selectedFountain && <FountainDetail fountain={selectedFountain} onBack={handleBackToList} />
+        selectedFountain && <FountainDetail
+          fountain={selectedFountain}
+          onBack={handleBackToList}
+          onRefillReady={setRefillState}
+          canRefill={refillState?.canRefill}
+          isLogging={refillState?.isLogging}
+        />
       ) : (
         <ProfileMenu 
           onClose={() => setSheetContent('list')} 
@@ -183,11 +271,32 @@ function Home() {
         selectedFountain={selectedFountain}
         onMapClick={handleMapClick}
         onFountainClick={handleFountainClick}
+        userPos={userPos}
+        accuracy={accuracy}
+        geoStatus={geoStatus}
+        onLocateMe={startWatching}
       />
+
+      {/* Mobile only: Refill button floats whenever canRefill is true */}
+      {refillState?.canRefill && (
+        <div
+          className="home__refill-above-sheet"
+          style={{ bottom: `${SNAP_POINTS[currentSnap]}vh` }}
+        >
+          <button
+            className={`fountain-detail-log-refill${refillState.isLogging ? ' logging' : ''}`}
+            onClick={() => refillState.logRefill()}
+            disabled={refillState.isLogging}
+            aria-label="Log refill here"
+          >
+            <RefillOvalIcon />
+          </button>
+        </div>
+      )}
 
       {/* Mobile: Bottom sheet */}
       <BottomSheet
-        snapPoints={[35, 60, 90]}
+        snapPoints={SNAP_POINTS}
         defaultSnap={currentSnap}
         onSnapChange={handleSheetSnapChange}
       >
