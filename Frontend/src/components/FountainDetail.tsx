@@ -18,11 +18,13 @@ interface FountainDetailProps {
   onBack?: () => void;
   canRefill?: boolean;
   isLogging?: boolean;
+  nearbyFountainId?: string;
+  userPos?: [number, number] | null;
   /** Called whenever proximity/state changes so the parent can render the button above the sheet */
   onRefillReady?: (state: { canRefill: boolean; isLogging: boolean; logRefill: () => void }) => void;
 }
 
-function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady }: FountainDetailProps) {
+function FountainDetail({ fountain, onBack, canRefill, isLogging, nearbyFountainId, userPos, onRefillReady }: FountainDetailProps) {
   const { user } = useAuth();
 
   const t = useTranslation();
@@ -38,6 +40,49 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
   const [isFavorited, setIsFavorited] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoadingInteractions, setIsLoadingInteractions] = useState(false);
+
+  // Track local fountain state to update ID after OSM sync
+  const [localFountain, setLocalFountain] = useState(fountain);
+
+  useEffect(() => {
+    setLocalFountain(fountain);
+  }, [fountain]);
+
+  // Helper to sync OSM fountain to DB if needed
+  const syncOSMIfRequired = async (): Promise<string> => {
+    const idStr = localFountain.id.toString();
+    // If ID is a UUID (contains -) and doesn't start with - (negative OSM ID)
+    if (idStr.includes("-") && !idStr.startsWith("-")) {
+      return idStr;
+    }
+
+    const osmNodeId = Math.abs(parseInt(idStr, 10));
+    if (isNaN(osmNodeId)) return idStr;
+
+    try {
+      console.log("🔄 Syncing OSM node to DB:", osmNodeId);
+      const res = await fetch(`${API_BASE}/api/fountains/by-osm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          osmNodeId,
+          name: localFountain.name,
+          latitude: localFountain.latitude,
+          longitude: localFountain.longitude,
+        }),
+      });
+
+      if (res.ok) {
+        const syncedFountain = await res.json();
+        console.log("✅ OSM node synced. New ID:", syncedFountain.id);
+        setLocalFountain((prev) => ({ ...prev, id: syncedFountain.id }));
+        return syncedFountain.id;
+      }
+    } catch (error) {
+      console.error("❌ Error syncing OSM fountain:", error);
+    }
+    return idStr;
+  };
 
   // Water quality rating states
   const [userRating, setUserRating] = useState<number | null>(null);
@@ -138,7 +183,7 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
     const fetchWaterQualityStats = async () => {
       try {
         const res = await fetch(
-          `${API_BASE}/api/water-quality-ratings/${fountain.id}`,
+          `${API_BASE}/api/water-quality-ratings/${localFountain.id}`,
         );
         if (res.ok) {
           const stats = await res.json();
@@ -166,7 +211,7 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
     // BroadcastChannel for instant updates across tabs
     const channel = new BroadcastChannel("water-quality-updates");
     channel.onmessage = (event) => {
-      if (event.data.fountainId === fountain.id.toString()) {
+      if (event.data.fountainId === localFountain.id.toString()) {
         fetchWaterQualityStats();
       }
     };
@@ -177,7 +222,7 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       channel.close();
     };
-  }, [fountain.id]);
+  }, [localFountain.id]);
 
   // Fetch user's rating if authenticated with real-time updates
   useEffect(() => {
@@ -186,7 +231,7 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
 
       try {
         const res = await fetch(
-          `${API_BASE}/api/water-quality-ratings/${fountain.id}/user/${user.id}`,
+          `${API_BASE}/api/water-quality-ratings/${localFountain.id}/user/${user.id}`,
         );
         if (res.ok) {
           const rating = await res.json();
@@ -217,7 +262,7 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
     // BroadcastChannel for instant updates across tabs
     const channel = new BroadcastChannel("water-quality-updates");
     channel.onmessage = (event) => {
-      if (event.data.fountainId === fountain.id.toString() && event.data.userId === user?.id) {
+      if (event.data.fountainId === localFountain.id.toString() && event.data.userId === user?.id) {
         fetchUserRating();
       }
     };
@@ -228,7 +273,7 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       channel.close();
     };
-  }, [fountain.id, user]);
+  }, [localFountain.id, user]);
 
   // Fetch interaction status
   useEffect(() => {
@@ -246,10 +291,10 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
           const saved = await saveRes.json();
 
           setIsFavorited(
-            favorites.some((f: any) => f.fountainId === fountain.id.toString()),
+            favorites.some((f: any) => f.fountainId === localFountain.id.toString()),
           );
           setIsSaved(
-            saved.some((f: any) => f.fountainId === fountain.id.toString()),
+            saved.some((f: any) => f.fountainId === localFountain.id.toString()),
           );
         }
       } catch (error) {
@@ -258,7 +303,7 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
     };
 
     fetchInteractions();
-  }, [fountain.id, user]);
+  }, [localFountain.id, user]);
 
   const toggleInteraction = async (type: "favorite" | "save") => {
     if (!user) return; // Should be handled by UI visibility, but safeguard
@@ -268,6 +313,10 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
 
     try {
       setIsLoadingInteractions(true);
+      
+      // Ensure it's in our DB first
+      const activeId = await syncOSMIfRequired();
+
       if (isCurrentlyActive) {
         // Remove
         const res = await fetch(`${API_BASE}/api/interactions`, {
@@ -275,7 +324,7 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: user.id,
-            fountainId: fountain.id,
+            fountainId: activeId,
             interactionType: type,
           }),
         });
@@ -287,11 +336,11 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: user.id,
-            fountainId: fountain.id,
+            fountainId: activeId,
             interactionType: type,
-            fountainName: fountain.name,
-            fountainLat: fountain.latitude,
-            fountainLon: fountain.longitude,
+            fountainName: localFountain.name,
+            fountainLat: localFountain.latitude,
+            fountainLon: localFountain.longitude,
           }),
         });
         if (res.ok) setIsActive(true);
@@ -311,16 +360,20 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
 
     try {
       setIsSubmittingRating(true);
+      
+      // Ensure it's in our DB first
+      const activeId = await syncOSMIfRequired();
+
       const res = await fetch(`${API_BASE}/api/water-quality-ratings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
-          fountainId: fountain.id,
+          fountainId: activeId,
           qualityRating: rating,
-          fountainName: fountain.name,
-          fountainLat: fountain.latitude,
-          fountainLon: fountain.longitude,
+          fountainName: localFountain.name,
+          fountainLat: localFountain.latitude,
+          fountainLon: localFountain.longitude,
         }),
       });
 
@@ -367,12 +420,12 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
         },
         body: JSON.stringify({ 
           userId: user.id,
-          waterSourceId: fountain.id.toString()
+          waterSourceId: localFountain.id.toString()
         }),
       });
       
       if (response.ok) {
-        console.log("Refill logged in-place:", fountain.name);
+        console.log("Refill logged in-place:", localFountain.name);
         alert(t.refillLoggedSuccess);
       } else {
         alert(t.refillLoggedError);
@@ -385,23 +438,46 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
     }
   };
 
-  // Proximity logic is now handled globally in Home.tsx.
-  const isCloseEnoughToLog = canRefill;
-  const isLoggingRefillLocal = isLogging ?? isLoggingRefill; 
+  // Compute distance to this fountain if userPos is available
+  const [distMeters, setDistMeters] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (userPos) {
+      const R = 6371e3; // metres
+      const lat1 = (userPos[0] * Math.PI) / 180;
+      const lat2 = (fountain.latitude * Math.PI) / 180;
+      const deltaLat = ((fountain.latitude - userPos[0]) * Math.PI) / 180;
+      const deltaLon = ((fountain.longitude - userPos[1]) * Math.PI) / 180;
+
+      const a =
+        Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+        Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const d = R * c;
+      setDistMeters(d);
+    } else {
+      setDistMeters(null);
+    }
+  }, [userPos, fountain.latitude, fountain.longitude]);
+
+  // Proximity logic:
+  // Show if either the parent says we are near (proactive) OR if we compute we are near.
+  const isCloseEnoughToLog = (canRefill && fountain.id.toString() === nearbyFountainId) || (distMeters !== null && distMeters <= 500);
+  const isLoggingRefillLocal = isLogging ?? isLoggingRefill;
 
   useEffect(() => {
     onRefillReady?.({
       canRefill: Boolean(isCloseEnoughToLog),
-      isLogging: isLoggingRefill,
+      isLogging: isLoggingRefillLocal,
       logRefill: handleLogRefill,
     });
-  }, [isCloseEnoughToLog, isLoggingRefill, fountain.id]);
+  }, [isCloseEnoughToLog, isLoggingRefillLocal, fountain.id]);
 
   return (
     <div className="fountain-detail">
       <div className="fountain-detail-container">
         <div className="fountain-detail-map-container">
-          <FountainDetailMap fountain={fountain} />
+          <FountainDetailMap fountain={localFountain} />
 
           {/* Desktop only: refill button floats in the map overlay */}
           {isCloseEnoughToLog && (
@@ -421,7 +497,7 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
         
         <div className="fountain-detail-content">
           <FountainDetailHeader
-            fountain={fountain}
+            fountain={localFountain}
             user={user}
             isFavorited={isFavorited}
             isSaved={isSaved}
@@ -430,18 +506,18 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
             onBack={onBack}
           />
 
-          <FountainDetailMeta fountain={fountain} />
+          <FountainDetailMeta fountain={localFountain} />
 
-        {fountain.images && fountain.images.length > 0 && (
+        {localFountain.images && localFountain.images.length > 0 && (
           <div className="fountain-detail-images">
-            {fountain.images.map((image, index) => (
+            {localFountain.images.map((image, index) => (
               <div
                 key={index}
                 className="detail-image"
                 onClick={() => openLightbox(index)}
                 style={{ cursor: "pointer" }}
               >
-                <img src={image} alt={`${fountain.name} ${index + 1}`} />
+                <img src={image} alt={`${localFountain.name} ${index + 1}`} />
               </div>
             ))}
           </div>
@@ -455,30 +531,30 @@ function FountainDetail({ fountain, onBack, canRefill, isLogging, onRefillReady 
           handleRating={handleRating}
         />
 
-        {fountain.description && (
+        {localFountain.description && (
           <div className="fountain-detail-section">
             <h3 className="section-title">{t.description}</h3>
             <p className="section-text">
               {isTranslating
                 ? `${t.loading}`
-                : translatedDescription || fountain.description}
+                : translatedDescription || localFountain.description}
             </p>
           </div>
         )}
 
-        {fountain.distance && (
+        {localFountain.distance && (
           <div className="fountain-detail-section">
             <h3 className="section-title">{t.distance}</h3>
-            <p className="section-text">{fountain.distance}</p>
+            <p className="section-text">{localFountain.distance}</p>
           </div>
         )}
       </div></div>
 
-      {expandedImageIndex !== null && fountain.images && (
+      {expandedImageIndex !== null && localFountain.images && (
         <FountainDetailLightbox
-          images={fountain.images}
+          images={localFountain.images}
           expandedImageIndex={expandedImageIndex}
-          fountainName={fountain.name}
+          fountainName={localFountain.name}
           closeLightbox={closeLightbox}
           nextImage={nextImage}
           prevImage={prevImage}

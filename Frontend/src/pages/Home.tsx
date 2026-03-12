@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   BottomSheet,
@@ -14,7 +14,10 @@ import { RefillOvalIcon } from '../assets/icons/RefillOval';
 import type { Fountain } from '../types/fountain';
 import { useAuth } from '../context/AuthContext';
 import { useGeolocation } from '../hooks/useGeolocation';
+import { calculateDistance, formatDistance } from '../utils/distance';
 import './Home.css';
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 type SheetContent = 'list' | 'detail' | 'profile';
 
@@ -24,45 +27,120 @@ function Home() {
   const { user, avatarUrl } = useAuth();
   const [fountains, setFountains] = useState<Fountain[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedFountain, setSelectedFountain] = useState<Fountain | null>(null);
-  const { userPos, accuracy, geoStatus, startWatching } = useGeolocation();
-
-  // fetch list from backend
-  // fall back to localhost:3000 if the env var isn't set (avoids hitting Vite's own server)
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
-
-
+  const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(undefined);
+  const [mapZoom, setMapZoom] = useState<number>(13);
 
   useEffect(() => {
-    const fetchFountains = (lat?: number, lon?: number) => {
-      const queryParams = new URLSearchParams();
-      if (lat !== undefined && lon !== undefined) {
-        queryParams.append('lat', lat.toString());
-        queryParams.append('lon', lon.toString());
-        queryParams.append('radius', '30000');
-      }
-      
-      const queryString = queryParams.toString();
-      const url = `${API_BASE}/api/fountains${queryString ? `?${queryString}` : ''}`;
-      
-      fetch(url)
-        .then((res) => {
-          console.log('api response status', res.status);
-          return res.json();
-        })
-        .then((data: Fountain[]) => {
-          console.log('fountains fetched', data);
-          setFountains(data);
-        })
-        .catch((err) => {
-          console.error('failed to load fountains', err);
-        });
-    };
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 200);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+  const { userPos, accuracy, geoStatus, startWatching } = useGeolocation();
 
+  // Memoized fountains with search filtering and sorting by proximity
+  const displayFountains = useMemo(() => {
+    let result = [...fountains];
+
+    // 1. Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(f => 
+        f.name.toLowerCase().includes(query) || 
+        (f.category && f.category.toLowerCase().includes(query)) ||
+        (f.description && f.description.toLowerCase().includes(query))
+      );
+    }
+
+    // 2. Map distances and sort
+    const withDistance = result.map((f) => {
+      const d = userPos 
+        ? calculateDistance(userPos[0], userPos[1], f.latitude, f.longitude)
+        : null;
+      return {
+        ...f,
+        distanceMeters: d,
+        distance: d !== null ? formatDistance(d) : undefined,
+      };
+    });
+
+    if (userPos) {
+      withDistance.sort((a, b) => (a.distanceMeters || 0) - (b.distanceMeters || 0));
+    }
+
+    return withDistance;
+  }, [fountains, userPos, searchQuery]);
+
+  // Suggestions for the floating dropdown
+  const searchSuggestions = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) return [];
+    
+    // Use the already filtered/sorted displayFountains but limit to 5
+    return displayFountains.slice(0, 5);
+  }, [displayFountains, debouncedSearchQuery]);
+
+  const handleFountainClick = useCallback((fountain: Fountain) => {
+    setSelectedFountain(fountain);
+    setSheetContent('detail');
+    setCurrentSnap(1);
+  }, []);
+
+  const handleSuggestionClick = useCallback((fountain: Fountain) => {
+    setSearchQuery('');
+    setIsSearchFocused(false);
+    setMapCenter([fountain.latitude, fountain.longitude]);
+    setMapZoom(16);
+    handleFountainClick(fountain);
+  }, [handleFountainClick]);
+
+  // fetch list from backend
+  const fetchFountains = useCallback((lat?: number, lon?: number) => {
+    const queryParams = new URLSearchParams();
+    if (lat !== undefined && lon !== undefined) {
+      queryParams.append('lat', lat.toString());
+      queryParams.append('lon', lon.toString());
+    }
+    
+    const queryString = queryParams.toString();
+    const url = `${API_BASE}/api/fountains${queryString ? `?${queryString}` : ''}`;
+    console.log('Fetching fountains from:', url);
+    
+    fetch(url)
+      .then((res) => {
+        console.log('Home.tsx: fetch response status:', res.status);
+        return res.json();
+      })
+      .then((data: Fountain[]) => {
+        console.log('Home.tsx: fetched fountains count:', data.length);
+        // MERGE logic: Keep existing fountains and add new ones, avoiding duplicates by ID
+        setFountains(prev => {
+          const merged: Record<string, Fountain> = {};
+          // First add existing ones
+          prev.forEach(f => {
+            merged[f.id] = f;
+          });
+          // Then add/overwrite with new ones
+          data.forEach(f => {
+            merged[f.id] = f;
+          });
+          return Object.values(merged);
+        });
+      })
+      .catch((err) => {
+        console.error('Home.tsx: failed to load fountains', err);
+      });
+  }, [API_BASE]);
+
+  useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          fetchFountains(position.coords.latitude, position.coords.longitude);
+          const { latitude, longitude } = position.coords;
+          fetchFountains(latitude, longitude);
+          if (!mapCenter) setMapCenter([latitude, longitude]);
         },
         (error) => {
           console.warn('Geolocation error in Home, falling back to default:', error.message);
@@ -73,7 +151,13 @@ function Home() {
     } else {
       fetchFountains(); // fallback if geolocation not supported
     }
-  }, [API_BASE]);
+  }, [fetchFountains]); // Run once on mount
+
+  const handleCountrySelect = useCallback((country: any) => {
+    setMapCenter(country.coords);
+    setMapZoom(country.zoom);
+    fetchFountains(country.coords[0], country.coords[1]);
+  }, [fetchFountains]);
   const [sheetContent, setSheetContent] = useState<SheetContent>('list');
   const [currentSnap, setCurrentSnap] = useState(0);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
@@ -166,12 +250,6 @@ function Home() {
     }
   }, [userPos, fountains, user?.id]);
 
-  const handleFountainClick = (fountain: Fountain) => {
-    setSelectedFountain(fountain);
-    setSheetContent('detail');
-    setCurrentSnap(0);
-  };
-
   const handleSheetSnapChange = (snapIndex: number) => {
     setCurrentSnap(snapIndex);
   };
@@ -201,14 +279,16 @@ function Home() {
   const panelContent = (
     <>
       {sheetContent === 'list' ? (
-        <FountainsList fountains={fountains} onFountainClick={handleFountainClick} />
+        <FountainsList fountains={displayFountains} onFountainClick={handleFountainClick} />
       ) : sheetContent === 'detail' ? (
         selectedFountain && <FountainDetail
           fountain={selectedFountain}
           onBack={handleBackToList}
-          onRefillReady={setRefillState}
+          onRefillReady={(data) => setRefillState(prev => prev ? { ...prev, ...data } : (data as any))}
           canRefill={refillState?.canRefill}
           isLogging={refillState?.isLogging}
+          nearbyFountainId={refillState?.nearbyFountainId}
+          userPos={userPos}
         />
       ) : (
         <ProfileMenu 
@@ -223,7 +303,15 @@ function Home() {
     <div className={`home ${isPanelCollapsed ? 'home--panel-collapsed' : ''}`}>
       {/* Mobile: Search bar and user button floating on map */}
       <div className="home__mobile-header">
-        <RefillSearchBar value={searchQuery} onChange={setSearchQuery} />
+        <RefillSearchBar 
+          value={searchQuery} 
+          onChange={setSearchQuery}
+          onFocus={() => setIsSearchFocused(true)}
+          onBlur={() => setIsSearchFocused(false)}
+          suggestions={isSearchFocused ? searchSuggestions : []}
+          onSuggestionClick={handleSuggestionClick}
+          onCountrySelect={handleCountrySelect}
+        />
         <UserButton onClick={handleUserClick} avatarUrl={avatarUrl} />
       </div>
 
@@ -234,7 +322,15 @@ function Home() {
             <h1 className="home__desktop-title">Nuevo nombre</h1>
             <UserButton onClick={handleUserClick} avatarUrl={avatarUrl} />
           </div>
-          <RefillSearchBar value={searchQuery} onChange={setSearchQuery} />
+          <RefillSearchBar 
+            value={searchQuery} 
+            onChange={setSearchQuery} 
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+            suggestions={isSearchFocused ? searchSuggestions : []}
+            onSuggestionClick={handleSuggestionClick}
+            onCountrySelect={handleCountrySelect}
+          />
         </div>
         {sheetContent === 'profile' && (
           <button className="home__back-button" onClick={handleBackToList}>
@@ -269,6 +365,8 @@ function Home() {
       <Map
         fountains={fountains}
         selectedFountain={selectedFountain}
+        center={mapCenter}
+        zoom={mapZoom}
         onMapClick={handleMapClick}
         onFountainClick={handleFountainClick}
         userPos={userPos}

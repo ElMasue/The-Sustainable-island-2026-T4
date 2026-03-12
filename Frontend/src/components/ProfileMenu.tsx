@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { MenuItem } from './';
+import { MenuItem, Leaderboard } from './';
 import './ProfileMenu.css';
 import { useAuth } from '../context/AuthContext';
 import { useAppSettings } from '../context/AppSettingsContext';
@@ -28,7 +28,7 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
   const { language, darkMode, setLanguage, toggleDarkMode } = useAppSettings();
   const t = useTranslation();
   
-  type ViewState = 'main' | 'settings' | 'language' | 'favorites' | 'saved';
+  type ViewState = 'main' | 'settings' | 'language' | 'favorites' | 'saved' | 'leaderboard';
   const [view, setView] = useState<ViewState>('main');
   
   const [editingName, setEditingName] = useState(false);
@@ -111,6 +111,7 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
   const openLanguageMenu = () => setView('language');
   const openFavorites = () => setView('favorites');
   const openSaved = () => setView('saved');
+  const openLeaderboard = () => setView('leaderboard');
 
   const backToMenu = () => {
     setView('main');
@@ -169,7 +170,8 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
             <span className="settings-title">
               {view === 'language' ? t.language : 
                view === 'settings' ? t.settings : 
-               view === 'favorites' ? t.favorites : t.saved}
+               view === 'favorites' ? t.favorites : 
+               view === 'leaderboard' ? t.leaderboard : t.saved}
             </span>
             <button className="profile-back-button" onClick={backToMenu}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -276,6 +278,8 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
               />
             ))}
           </>
+        ) : view === 'leaderboard' ? (
+          <Leaderboard />
         ) : view === 'favorites' || view === 'saved' ? (
           <div className="interaction-list-container" style={{ padding: '0 1rem' }}>
             {loadingList ? (
@@ -330,6 +334,16 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
           </div>
         ) : isLoggedIn && view === 'main' ? (
           <>
+            <MenuItem
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#3A9BDC" stroke="none">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+              }
+              title={t.leaderboard}
+              subtitle={t.topRefills}
+              onClick={openLeaderboard}
+            />
 
             <MenuItem
               icon={

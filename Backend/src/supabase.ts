@@ -22,6 +22,7 @@ export interface WaterSourceRow {
   category: string | null;
   images?: string[] | null;
   user_id?: string | null;
+  osm_node_id?: number | null;
   created_at?: string;
 }
 
@@ -50,6 +51,7 @@ export interface WaterSourceResponse {
   category?: string;
   images?: string[];
   userId?: string;
+  osmNodeId?: number;
   useAdminPin: false;
 }
 
@@ -66,6 +68,7 @@ function toResponse(row: WaterSourceRow): WaterSourceResponse {
     images: row.images ?? undefined,
     category: row.category ?? undefined,
     userId: row.user_id ?? undefined,
+    osmNodeId: row.osm_node_id ?? undefined,
     useAdminPin: false,
   };
 }
@@ -91,6 +94,59 @@ export async function getWaterSources(): Promise<WaterSourceResponse[]> {
 
   const rows = data as WaterSourceRow[];
   return rows.map(toResponse);
+}
+
+/**
+ * Get or create a water source for an OSM node.
+ * This allows users to interact with OSM fountains (rating, photos).
+ */
+export async function getOrCreateByOsmNodeId(
+  osmNodeId: number,
+  name: string,
+  latitude: number,
+  longitude: number
+): Promise<WaterSourceResponse | null> {
+  if (!supabase) return null;
+
+  // 1. Check if it already exists in our DB
+  const { data: existing, error: selectError } = await supabase
+    .from(TABLE)
+    .select('id, name, latitude, longitude, description, rating, is_operational, is_free, category, images, user_id, osm_node_id')
+    .eq('osm_node_id', osmNodeId)
+    .maybeSingle();
+
+  if (selectError) {
+    console.error('supabase getOrCreateByOsmNodeId select error', selectError);
+    return null;
+  }
+
+  if (existing) {
+    return toResponse(existing as WaterSourceRow);
+  }
+
+  // 2. If not, create it
+  const { data: inserted, error: insertError } = await supabase
+    .from(TABLE)
+    .insert({
+      name: name.trim() || 'Public Fountain',
+      latitude,
+      longitude,
+      osm_node_id: osmNodeId,
+      is_operational: true,
+      is_free: true,
+      category: 'Public',
+      images: [],
+      user_id: null, // OSM fountains don't have a single "owner" initially
+    })
+    .select()
+    .single();
+
+  if (insertError) {
+    console.error('supabase getOrCreateByOsmNodeId insert error', insertError);
+    return null;
+  }
+
+  return toResponse(inserted as WaterSourceRow);
 }
 
 export async function createWaterSource(input: CreateWaterSourceInput): Promise<WaterSourceResponse | null> {

@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
 
 import type { Fountain } from '../types/fountain';
 import { useTranslation } from '../i18n';
@@ -69,7 +70,7 @@ function Map({
   // Refs for user-location layer so we can update without rebuilding the map
   const userMarkerRef = useRef<L.Marker | null>(null);
   const accuracyCircleRef = useRef<L.Circle | null>(null);
-  const fountainsLayerRef = useRef<L.LayerGroup | null>(null);
+  const clusterGroupRef = useRef<any>(null);
 
   // ── Build / tear-down the map (runs ONCE) ─────────────────────────
   useEffect(() => {
@@ -85,7 +86,35 @@ function Map({
       maxZoom: 19,
     }).addTo(map);
 
-    fountainsLayerRef.current = L.layerGroup().addTo(map);
+    // Create marker cluster group
+    clusterGroupRef.current = (L as any).markerClusterGroup({
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      spiderfyOnMaxZoom: true,
+      maxClusterRadius: 50,
+      iconCreateFunction: (cluster: any) => {
+        const childMarkers = cluster.getAllChildMarkers();
+        const count = childMarkers.length;
+        
+        // Determine if there are OSM fountains (id < 0 or starts with '-')
+        // If mostly OSM (or mixed), use orange. If all DB, use blue.
+        let osmCount = 0;
+        childMarkers.forEach((m: any) => {
+          const f = m.fountainData;
+          const isOSM = typeof f.id === 'string' ? (f.id as string).startsWith('-') : f.id < 0;
+          if (isOSM) osmCount++;
+        });
+
+        const isMostlyOSM = osmCount >= count / 2;
+        const colorClass = isMostlyOSM ? 'cluster-icon--osm' : 'cluster-icon--db';
+
+        return L.divIcon({
+          html: `<div class="cluster-icon ${colorClass}"><span>${count}</span></div>`,
+          className: 'cluster-icon-wrapper',
+          iconSize: L.point(40, 40),
+        });
+      }
+    }).addTo(map);
 
     map.on('click', () => {
       onMapClick?.();
@@ -93,7 +122,7 @@ function Map({
 
     return () => {
       mapInstanceRef.current = null;
-      fountainsLayerRef.current = null;
+      clusterGroupRef.current = null;
       map.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -101,10 +130,10 @@ function Map({
 
   // ── Render Fountains (runs when fountains change) ─────────────
   useEffect(() => {
-    const layer = fountainsLayerRef.current;
-    if (!layer) return;
+    const clusterGroup = clusterGroupRef.current;
+    if (!clusterGroup) return;
 
-    layer.clearLayers();
+    clusterGroup.clearLayers();
 
     const osmFountainIcon = new L.Icon({
       iconUrl: userPinIcon, // Orange
@@ -118,17 +147,24 @@ function Map({
       iconAnchor: [15, 30],
     });
 
+    const markers: L.Marker[] = [];
     fountains.forEach((f) => {
       const isOSM = typeof f.id === 'string' ? (f.id as string).startsWith('-') : f.id < 0;
       const markerIcon = isOSM ? osmFountainIcon : dbFountainIcon;
 
       const marker = L.marker([f.latitude, f.longitude], { icon: markerIcon });
+      // Attach fountain data to marker for cluster icon logic
+      (marker as any).fountainData = f;
+
       marker.on('click', (e) => {
         L.DomEvent.stopPropagation(e);
         onFountainClick?.(f);
       });
-      layer.addLayer(marker);
+      markers.push(marker);
     });
+
+    console.log(`Map.tsx: adding ${markers.length} markers to cluster group`);
+    clusterGroup.addLayers(markers);
   }, [fountains, onFountainClick, t]);
 
   // ── Update user-location layer when position changes ──────────
@@ -173,6 +209,19 @@ function Map({
       );
     }
   }, [selectedFountain]);
+
+  // Handle center/zoom changes from parent (e.g. country selector)
+  useEffect(() => {
+    if (mapInstanceRef.current && center) {
+      const currentCenter = mapInstanceRef.current.getCenter();
+      const targetCenter = L.latLng(center[0], center[1]);
+      
+      // Only fly if coordinates are significantly different
+      if (currentCenter.distanceTo(targetCenter) > 100 || mapInstanceRef.current.getZoom() !== zoom) {
+        mapInstanceRef.current.flyTo(center, zoom, { duration: 1.5 });
+      }
+    }
+  }, [center, zoom]);
 
   // Removed internal watchPosition logic, now handled by useGeolocation in parent
 
