@@ -31,7 +31,10 @@ import {
   getUserInteractions,
   upsertWaterQualityRating,
   getUserRatingForFountain,
-  getWaterQualityStats
+  getWaterQualityStats,
+  getRefillCount,
+  logRefill,
+  getRefillLeaderboard
 } from './supabase';
 import { fetchOSMFountains } from './osmService';
 
@@ -302,6 +305,55 @@ app.get('/api/water-quality-ratings/:fountainId/user/:userId', async (req: Reque
   }
 });
 
+// Refills routes
+app.get('/api/refills/count/:userId', async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId as string;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId parameter' });
+    }
+
+    const count = await getRefillCount(userId);
+    res.json({ count });
+  } catch (e) {
+    console.error('GET /api/refills/count/:userId', e);
+    res.status(500).json({ error: 'Failed to fetch refill count' });
+  }
+});
+
+app.post('/api/refills', async (req: Request, res: Response) => {
+  try {
+    const { userId, waterSourceId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing required field: userId' });
+    }
+
+    const success = await logRefill(userId, waterSourceId);
+
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to log refill' });
+    }
+
+    res.status(201).json({ message: 'Refill logged successfully' });
+  } catch (e) {
+    console.error('POST /api/refills', e);
+    res.status(500).json({ error: 'Failed to log refill' });
+  }
+});
+
+
+app.get('/api/refills/leaderboard', async (req: Request, res: Response) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+    const leaderboard = await getRefillLeaderboard(limit);
+    res.json(leaderboard);
+  } catch (e) {
+    console.error('GET /api/refills/leaderboard', e);
+    res.status(500).json({ error: 'Failed to fetch leaderboard' });
+  }
+});
 
 // Start server
 app.listen(PORT, () => {

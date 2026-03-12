@@ -38,6 +38,7 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [interactionList, setInteractionList] = useState<Interaction[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+  const [refillCount, setRefillCount] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Email users can change their avatar; OAuth users (Google/Apple) keep their provider photo
@@ -140,6 +141,25 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
     
     fetchInteractions();
   }, [view, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchRefillCount = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/refills/count/${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRefillCount(data.count);
+        }
+      } catch (err) {
+        console.error('Error fetching refill count:', err);
+      }
+    };
+    
+    fetchRefillCount();
+  }, [user]);
+
   
   return (
     <div className="profile-menu">
@@ -226,7 +246,11 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
                 <p className="user-email">{user.email}</p>
               )}
               <div className="user-stats">
-                <span>★ 100 {t.refills}</span>
+                <span>
+                  {refillCount === 0 
+                    ? t.noRefillsYet 
+                    : `${refillCount} ${refillCount === 1 ? t.refillSingle : t.refills}`}
+                </span>
               </div>
             </div>
             </div>
@@ -306,6 +330,7 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
           </div>
         ) : isLoggedIn && view === 'main' ? (
           <>
+
             <MenuItem
               icon={
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4081" stroke="none">

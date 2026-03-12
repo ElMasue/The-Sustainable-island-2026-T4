@@ -342,7 +342,7 @@ async function updateFountainRating(fountainId: string): Promise<void> {
   try {
     // Calculate the average rating for this fountain
     const stats = await getWaterQualityStats(fountainId);
-    
+
     if (!stats) {
       console.warn('Could not get water quality stats for fountain', fountainId);
       return;
@@ -498,4 +498,70 @@ export async function getWaterQualityStats(fountainId: string): Promise<WaterQua
   };
 }
 
+// ==================== Refills ====================
+const REFILLS_TABLE = 'refills';
 
+export interface LeaderboardEntry {
+  userId: string;
+  refillCount: number;
+  displayName: string | null;
+  avatarUrl: string | null;
+}
+
+/**
+ * Log a refill for a user. Optionally link to a specific water source.
+ */
+export async function logRefill(userId: string, waterSourceId?: string | null): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from(REFILLS_TABLE).insert({
+    user_id: userId,
+    water_source_id: waterSourceId ?? null,
+  });
+  if (error) {
+    console.error('supabase logRefill error', error);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Get the total number of refills for a user.
+ */
+export async function getRefillCount(userId: string): Promise<number> {
+  if (!supabase) return 0;
+  const { count, error } = await supabase
+    .from(REFILLS_TABLE)
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId);
+  if (error) {
+    console.error('supabase getRefillCount error', error);
+    return 0;
+  }
+  return count ?? 0;
+}
+
+/**
+ * Get the refill leaderboard (requires migration 004_refill_leaderboard.sql in Supabase).
+ */
+export async function getRefillLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase.rpc('get_refill_leaderboard', {
+    limit_count: Math.min(Math.max(1, limit), 50),
+  });
+  if (error) {
+    console.error('supabase getRefillLeaderboard error', error);
+    return [];
+  }
+  const rows = (data ?? []) as Array<{
+    user_id: string;
+    refill_count: number | string;
+    display_name: string | null;
+    avatar_url: string | null;
+  }>;
+  return rows.map((r) => ({
+    userId: r.user_id,
+    refillCount: Number(r.refill_count),
+    displayName: r.display_name,
+    avatarUrl: r.avatar_url,
+  }));
+}
