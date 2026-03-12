@@ -1,8 +1,11 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import type { SupportedLanguage } from '../services/translationService';
 
 interface AppSettings {
-  language: 'en' | 'es';
+  language: SupportedLanguage;
   darkMode: boolean;
+  setLanguage: (lang: SupportedLanguage) => void;
   toggleLanguage: () => void;
   toggleDarkMode: () => void;
 }
@@ -10,11 +13,14 @@ interface AppSettings {
 const AppSettingsContext = createContext<AppSettings | undefined>(undefined);
 
 export function AppSettingsProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<'en' | 'es'>(() => {
+  const [language, setLanguageState] = useState<SupportedLanguage>(() => {
     // try to read from localStorage for persistence
     try {
       const stored = localStorage.getItem('language');
-      return stored === 'es' ? 'es' : 'en';
+      if (stored === 'en' || stored === 'es' || stored === 'da' || stored === 'is') {
+        return stored;
+      }
+      return 'en';
     } catch {
       return 'en';
     }
@@ -41,12 +47,27 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, [darkMode]);
 
-  const toggleLanguage = () => setLanguage((l) => (l === 'en' ? 'es' : 'en'));
+  const setLanguage = (lang: SupportedLanguage) => {
+    console.log('🌍 Language changing to:', lang);
+    setLanguageState(lang);
+  };
+  
+  const toggleLanguage = () => {
+    setLanguageState((l) => {
+      const langs: SupportedLanguage[] = ['en', 'es', 'da', 'is'];
+      const currentIndex = langs.indexOf(l);
+      const nextIndex = (currentIndex + 1) % langs.length;
+      const newLang = langs[nextIndex];
+      console.log('🌍 Language toggled from', l, 'to', newLang);
+      return newLang;
+    });
+  };
+  
   const toggleDarkMode = () => setDarkMode((m) => !m);
 
   return (
     <AppSettingsContext.Provider
-      value={{ language, darkMode, toggleLanguage, toggleDarkMode }}
+      value={{ language, darkMode, setLanguage, toggleLanguage, toggleDarkMode }}
     >
       {children}
     </AppSettingsContext.Provider>

@@ -17,3 +17,13 @@
 .divider span {
   padding: 0 1rem;
 }
+
+/* ── Dark Mode Support ── */
+body.dark-mode .divider {
+  color: #bbbbbb;
+}
+
+body.dark-mode .divider::before,
+body.dark-mode .divider::after {
+  border-bottom-color: #444444;
+}

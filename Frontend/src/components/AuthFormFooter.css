@@ -15,3 +15,12 @@
 .auth-form-footer__link:hover {
   text-decoration: underline;
 }
+
+/* ── Dark Mode Support ── */
+body.dark-mode .auth-form-footer {
+  color: #aaa;
+}
+
+body.dark-mode .auth-form-footer__link {
+  color: #fff;
+}

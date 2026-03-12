@@ -1,4 +1,8 @@
+
 import type { Fountain } from '../types/fountain';
+import { useTranslation } from '../i18n';
+import { translateCategory } from '../i18n/translations';
+import { useAppSettings } from '../context/AppSettingsContext';
 import './FountainCard.css';
 
 interface FountainCardProps {
@@ -8,12 +12,14 @@ interface FountainCardProps {
 }
 
 function FountainCard({ fountain, onClick, showImage = true }: FountainCardProps) {
+  const t = useTranslation();
+  const { language } = useAppSettings();
   return (
     <button className="fountain-card" onClick={onClick}>
       {showImage && (
         <div className="fountain-card-image">
-          {fountain.imageUrl ? (
-            <img src={fountain.imageUrl} alt={fountain.name} />
+          {fountain.images && fountain.images.length > 0 ? (
+            <img src={fountain.images[0]} alt={fountain.name} />
           ) : (
             <div className="fountain-placeholder">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -27,7 +33,9 @@ function FountainCard({ fountain, onClick, showImage = true }: FountainCardProps
         <div className="fountain-card-header">
           <h3 className="fountain-card-title">{fountain.name}</h3>
           {fountain.category && (
-            <span className="fountain-category">{fountain.category}</span>
+            <span className="fountain-category">
+              {translateCategory(fountain.category, language)}
+            </span>
           )}
         </div>
         <div className="fountain-card-details">
@@ -35,7 +43,7 @@ function FountainCard({ fountain, onClick, showImage = true }: FountainCardProps
             <span className="fountain-distance">{fountain.distance}</span>
           )}
           {fountain.isFree !== undefined && (
-            <span className="fountain-price">{fountain.isFree ? 'Free' : 'Paid'}</span>
+            <span className="fountain-price">{fountain.isFree ? t.free : t.paid}</span>
           )}
         </div>
         {fountain.rating !== undefined && (

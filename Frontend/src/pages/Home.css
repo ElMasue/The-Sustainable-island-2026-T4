@@ -29,6 +29,7 @@
 
 /* Desktop layout */
 @media (min-width: 1024px) {
+
   /* Hide mobile elements */
   .home__mobile-header {
     display: none;
@@ -110,9 +111,9 @@
     z-index: 1001;
     color: #333;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                background 0.2s,
-                box-shadow 0.2s,
-                transform 0.2s;
+      background 0.2s,
+      box-shadow 0.2s,
+      transform 0.2s;
   }
 
   .panel-toggle-btn:hover {
@@ -175,4 +176,81 @@ body.dark-mode .panel-toggle-btn {
 body.dark-mode .panel-toggle-btn:hover {
   background: #333;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Floating refill button just above the bottom sheet (mobile only) */
+.home__refill-above-sheet {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* nudge it just above the sheet edge + the drag handle */
+  margin-bottom: 12px;
+}
+
+/* Hide on desktop (side panel is used there, not the bottom sheet) */
+@media (min-width: 1024px) {
+  .home__refill-above-sheet {
+    display: none;
+  }
+}
+
+/* Floating Action Button for adding new site */
+.add-site-fab {
+  position: fixed;
+  bottom: calc(35vh + 16px);
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4F7CAC 0%, #3d6189 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+.add-site-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.add-site-fab:active {
+  transform: scale(0.95);
+}
+
+/* Desktop positioning */
+@media (min-width: 1024px) {
+  .add-site-fab {
+    bottom: 2rem;
+    right: 2rem;
+    width: 56px;
+    height: 56px;
+  }
+
+  .home--panel-collapsed .add-site-fab {
+    right: 2rem;
+  }
+}
+
+body.dark-mode .add-site-fab {
+  background: linear-gradient(135deg, #4F7CAC 0%, #5a8fc4 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Hide UI elements when image lightbox is open */
+body.lightbox-open .panel-toggle-btn,
+body.lightbox-open .add-site-fab {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }

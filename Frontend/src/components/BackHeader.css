@@ -45,3 +45,19 @@
 .search-button:hover {
   color: #00aaff;
 }
+
+/* ── Dark Mode Support ── */
+body.dark-mode .back-header {
+  background-color: #1a1a1a;
+  border-bottom-color: #333333;
+}
+
+body.dark-mode .back-button,
+body.dark-mode .search-button {
+  color: #e0e0e0;
+}
+
+body.dark-mode .back-button:hover,
+body.dark-mode .search-button:hover {
+  color: #4A90E2;
+}

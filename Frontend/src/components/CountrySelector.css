@@ -1,0 +1,120 @@
+.country-selector {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.country-selector__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.country-selector__trigger:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.country-selector__trigger svg {
+    width: 18px;
+    height: 18px;
+}
+
+.country-selector__menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+    z-index: 1001;
+    min-width: 160px;
+    padding: 4px 0;
+    animation: countryMenuFadeIn 0.2s ease-out;
+}
+
+@keyframes countryMenuFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.country-selector__item {
+    width: 100%;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s;
+}
+
+.country-selector__item:hover {
+    background: #f8f8f8;
+}
+
+.country-selector__flag {
+    font-size: 1.25rem;
+}
+
+.country-selector__name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Dark mode */
+body.dark-mode .country-selector__trigger {
+    color: #bbb;
+}
+
+body.dark-mode .country-selector__trigger:hover {
+    background: #333;
+    color: #fff;
+}
+
+body.dark-mode .country-selector__menu {
+    background: #2a2a2a;
+    border-color: #444;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .country-selector__item:hover {
+    background: #333;
+}
+
+body.dark-mode .country-selector__name {
+    color: #e0e0e0;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .country-selector__trigger {
+        width: 36px;
+        height: 36px;
+    }
+
+    .country-selector__menu {
+        left: -10px;
+        /* shift slightly to fit better */
+    }
+}

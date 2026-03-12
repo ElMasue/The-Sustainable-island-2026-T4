@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from '../i18n';
 import AuthFormFooter from './AuthFormFooter';
 import './SignInForm.css';
 import AuthPageLayout from './AuthPageLayout';
@@ -14,6 +15,7 @@ function SignInForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const t = useTranslation();
 
   const { signIn } = useAuth();
 
@@ -31,30 +33,30 @@ function SignInForm() {
 
 
   return (
-    <AuthPageLayout title="Sign In" backTo="/">
+    <AuthPageLayout title={t.signIn} backTo="/">
       <form className="sign-in-form" onSubmit={handleSubmit}>
         <FormInput
-          label="Email Address"
+          label={t.emailAddress}
           type="email"
-          placeholder="Enter email address"
+          placeholder={t.enterEmail}
           value={email}
           onChange={setEmail}
           required
         />
         <FormInput
-          label="Password"
+          label={t.password}
           type="password"
-          placeholder="Enter password"
+          placeholder={t.enterPassword}
           value={password}
           onChange={setPassword}
           required
         />
-        <PrimaryButton type="submit">Continue</PrimaryButton>
+        <PrimaryButton type="submit">{t.continue}</PrimaryButton>
         {error && <p className="auth-error">{error}</p>}
 
         <AuthFormFooter
-          text="Don't have an account?"
-          linkText="Create Account"
+          text={t.dontHaveAccount}
+          linkText={t.createAccount}
           onLinkClick={() => navigate('/signup')}
         />
 

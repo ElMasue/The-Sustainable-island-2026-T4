@@ -1,3 +1,4 @@
+import { useTranslation } from '../i18n';
 import './UserButton.css';
 
 export type UserButtonProps = {
@@ -6,13 +7,15 @@ export type UserButtonProps = {
   'aria-label'?: string;
 };
 
-function UserButton({ onClick, avatarUrl, 'aria-label': ariaLabel = 'Open profile' }: UserButtonProps) {
+function UserButton({ onClick, avatarUrl, 'aria-label': ariaLabel }: UserButtonProps) {
+  const t = useTranslation();
+  
   return (
     <button
       type="button"
       className="user-button"
       onClick={onClick}
-      aria-label={ariaLabel}
+      aria-label={ariaLabel || t.openProfile}
     >
       {avatarUrl ? (
         <img

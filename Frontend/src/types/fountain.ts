@@ -1,5 +1,5 @@
 export interface Fountain {
-  id: number;
+  id: string | number;
   name: string;
   latitude: number;
   longitude: number;
@@ -8,7 +8,7 @@ export interface Fountain {
   distance?: string;
   rating?: number;
   isFree?: boolean;
-  imageUrl?: string;
   images?: string[];
   category?: string;
+  userId?: string;
 }
