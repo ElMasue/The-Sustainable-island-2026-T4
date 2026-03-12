@@ -103,10 +103,10 @@
 /* ── Locate Me Button ── */
 .map-locate-btn {
   position: absolute;
-  bottom: calc(2rem + 72px);
-  right: 2rem;
-  width: 48px;
-  height: 48px;
+  bottom: calc(35vh + 72px); /* Mobile/tablet positioning */
+  right: 1rem;
+  width: 44px;
+  height: 44px;
   background: white;
   border: none;
   border-radius: 50%;
@@ -139,8 +139,6 @@
 @media (max-width: 768px) {
   .map-locate-btn {
     bottom: calc(35vh + 72px);
-    top: auto;
-    left: auto;
     right: 1rem;
     width: 44px;
     height: 44px;
@@ -152,6 +150,16 @@
 
   .leaflet-control-zoom {
     display: none !important;
+  }
+}
+
+/* Desktop positioning - same responsive behavior as add-site-fab */
+@media (min-width: 1024px) {
+  .map-locate-btn {
+    bottom: calc(2rem + 72px);
+    right: 2rem;
+    width: 56px;
+    height: 56px;
   }
 }
 
