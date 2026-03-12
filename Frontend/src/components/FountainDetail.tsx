@@ -125,7 +125,7 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
     translateDescription();
   }, [fountain.description, language, fountain.id]);
 
-  // Fetch water quality stats
+  // Fetch water quality stats with real-time updates
   useEffect(() => {
     const fetchWaterQualityStats = async () => {
       try {
@@ -141,10 +141,37 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
       }
     };
 
+    // Initial fetch
     fetchWaterQualityStats();
+
+    // Auto-refresh every 5 seconds for near real-time updates
+    const intervalId = setInterval(fetchWaterQualityStats, 5000);
+
+    // Refresh when page becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchWaterQualityStats();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // BroadcastChannel for instant updates across tabs
+    const channel = new BroadcastChannel("water-quality-updates");
+    channel.onmessage = (event) => {
+      if (event.data.fountainId === fountain.id.toString()) {
+        fetchWaterQualityStats();
+      }
+    };
+
+    // Cleanup
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      channel.close();
+    };
   }, [fountain.id]);
 
-  // Fetch user's rating if authenticated
+  // Fetch user's rating if authenticated with real-time updates
   useEffect(() => {
     const fetchUserRating = async () => {
       if (!user) return;
@@ -165,7 +192,34 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
       }
     };
 
+    // Initial fetch
     fetchUserRating();
+
+    // Auto-refresh every 5 seconds for near real-time updates
+    const intervalId = setInterval(fetchUserRating, 5000);
+
+    // Refresh when page becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchUserRating();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // BroadcastChannel for instant updates across tabs
+    const channel = new BroadcastChannel("water-quality-updates");
+    channel.onmessage = (event) => {
+      if (event.data.fountainId === fountain.id.toString() && event.data.userId === user?.id) {
+        fetchUserRating();
+      }
+    };
+
+    // Cleanup
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      channel.close();
+    };
   }, [fountain.id, user]);
 
   // Fetch interaction status
@@ -265,13 +319,26 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
       if (res.ok) {
         setUserRating(rating);
 
-        // Refresh stats
+        // Immediate refresh of stats
         const statsRes = await fetch(
           `${API_BASE}/api/water-quality-ratings/${fountain.id}`,
         );
         if (statsRes.ok) {
           const stats = await statsRes.json();
           setWaterQualityStats(stats);
+        }
+
+        // Broadcast to other tabs for instant update
+        try {
+          const channel = new BroadcastChannel("water-quality-updates");
+          channel.postMessage({
+            fountainId: fountain.id.toString(),
+            userId: user.id,
+            action: "rating-updated",
+          });
+          channel.close();
+        } catch (e) {
+          console.error("BroadcastChannel not supported:", e);
         }
       }
     } catch (error) {
