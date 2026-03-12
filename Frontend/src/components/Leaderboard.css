@@ -1,0 +1,224 @@
+.leaderboard {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+}
+
+.leaderboard-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.leaderboard-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.leaderboard-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.rank-1 {
+    background: linear-gradient(to right, #fff9e6, #ffffff);
+    border: 1px solid #ffeeba;
+}
+
+.rank-2 {
+    background: linear-gradient(to right, #f2f2f2, #ffffff);
+    border: 1px solid #e0e0e0;
+}
+
+.rank-3 {
+    background: linear-gradient(to right, #fff2e6, #ffffff);
+    border: 1px solid #ffd8b3;
+}
+
+.leaderboard-rank {
+    width: 2rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #888;
+}
+
+.rank-medal {
+    font-size: 1.25rem;
+}
+
+.leaderboard-user {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.leaderboard-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f0f0f0;
+    flex-shrink: 0;
+}
+
+.leaderboard-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #999;
+    font-size: 0.875rem;
+}
+
+.leaderboard-name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.leaderboard-count {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.125rem;
+}
+
+.count-value {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #3A9BDC;
+}
+
+.count-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.leaderboard-toggle {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #3A9BDC;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: background 0.2s;
+}
+
+.leaderboard-toggle:hover {
+    background: rgba(58, 155, 220, 0.05);
+}
+
+.rotate-180 {
+    transform: rotate(180deg);
+}
+
+.leaderboard-loader {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #3A9BDC;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.leaderboard-error {
+    padding: 1rem;
+    text-align: center;
+    color: #e53935;
+    font-size: 0.875rem;
+}
+
+/* Dark mode */
+body.dark-mode .leaderboard {
+    background: rgba(42, 42, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .leaderboard-title {
+    color: #e0e0e0;
+}
+
+body.dark-mode .leaderboard-item {
+    background: #2a2a2a;
+}
+
+body.dark-mode .rank-1 {
+    background: linear-gradient(to right, #3d3b2a, #2a2a2a);
+    border-color: #4a452a;
+}
+
+body.dark-mode .rank-2 {
+    background: linear-gradient(to right, #2a2a2a, #2a2a2a);
+    border-color: #3d3d3d;
+}
+
+body.dark-mode .rank-3 {
+    background: linear-gradient(to right, #3d2f2a, #2a2a2a);
+    border-color: #4a352a;
+}
+
+body.dark-mode .leaderboard-name {
+    color: #e0e0e0;
+}
+
+body.dark-mode .count-label {
+    color: #888;
+}

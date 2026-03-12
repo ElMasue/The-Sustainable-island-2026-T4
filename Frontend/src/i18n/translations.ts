@@ -104,6 +104,12 @@ export interface Translations {
   uploadFailed: string;
   loading: string;
   error: string;
+  leaderboard: string;
+  topRefills: string;
+  rank: string;
+  user: string;
+  showMore: string;
+  showLess: string;
 }
 
 export const translations: Record<SupportedLanguage, Translations> = {
@@ -211,6 +217,12 @@ export const translations: Record<SupportedLanguage, Translations> = {
     uploadFailed: 'Upload failed',
     loading: 'Loading...',
     error: 'Error',
+    leaderboard: 'Leaderboard',
+    topRefills: 'Top Refills',
+    rank: 'Rank',
+    user: 'User',
+    showMore: 'Show more',
+    showLess: 'Show less',
   },
 
   es: {
@@ -317,6 +329,12 @@ export const translations: Record<SupportedLanguage, Translations> = {
     uploadFailed: 'Error al subir',
     loading: 'Cargando...',
     error: 'Error',
+    leaderboard: 'Clasificación',
+    topRefills: 'Top Recargas',
+    rank: 'Puesto',
+    user: 'Usuario',
+    showMore: 'Mostrar más',
+    showLess: 'Mostrar menos',
   },
 
   da: {
@@ -423,6 +441,12 @@ export const translations: Record<SupportedLanguage, Translations> = {
     uploadFailed: 'Upload mislykkedes',
     loading: 'Indlæser...',
     error: 'Fejl',
+    leaderboard: 'Leaderboard',
+    topRefills: 'Top genopfyldninger',
+    rank: 'Rang',
+    user: 'Bruger',
+    showMore: 'Vis mere',
+    showLess: 'Vis mindre',
   },
 
   is: {
@@ -526,9 +550,15 @@ export const translations: Record<SupportedLanguage, Translations> = {
 
     // Errors
     imageTooBig: 'Mynd verður að vera minni en 5 MB',
-    uploadFailed: 'Upphledsla mistokst',
+    uploadFailed: 'Upphleðsla mistókst',
     loading: 'Hleður...',
     error: 'Villa',
+    leaderboard: 'Stigatafla',
+    topRefills: 'Flestar áfyllingar',
+    rank: 'Sæti',
+    user: 'Notandi',
+    showMore: 'Sýna meira',
+    showLess: 'Sýna minna',
   },
 };
 

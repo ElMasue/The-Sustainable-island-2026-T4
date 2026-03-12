@@ -1,3 +1,49 @@
+@import 'leaflet.markercluster/dist/MarkerCluster.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+
+/* ── Marker Clustering ── */
+.cluster-icon-wrapper {
+  background: none;
+  border: none;
+}
+
+.cluster-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 3px solid white;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cluster-icon:hover {
+  transform: scale(1.1);
+}
+
+.cluster-icon--osm {
+  background: linear-gradient(135deg, #FF7A50 0%, #FF5A20 100%);
+}
+
+.cluster-icon--db {
+  background: linear-gradient(135deg, #3A9BDC 0%, #2185C5 100%);
+}
+
+.cluster-icon span {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode adjustment for clusters */
+body.dark-mode .cluster-icon {
+  border-color: #2a2a2a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
 .map-container {
   position: absolute;
   top: 0;
@@ -103,7 +149,8 @@
 /* ── Locate Me Button ── */
 .map-locate-btn {
   position: absolute;
-  bottom: calc(35vh + 72px); /* Mobile/tablet positioning */
+  bottom: calc(35vh + 72px);
+  /* Mobile/tablet positioning */
   right: 1rem;
   width: 44px;
   height: 44px;

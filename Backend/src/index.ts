@@ -34,15 +34,44 @@ import {
   getWaterQualityStats,
   getRefillCount,
   logRefill,
-  getRefillLeaderboard
+  getRefillLeaderboard,
+  getOrCreateByOsmNodeId
 } from './supabase';
 import { fetchOSMFountains } from './osmService';
+
+app.post('/api/fountains/by-osm', async (req: Request, res: Response) => {
+  try {
+    const { osmNodeId, name, latitude, longitude } = req.body;
+
+    if (osmNodeId === undefined || latitude === undefined || longitude === undefined) {
+      return res.status(400).json({ error: 'Missing required fields: osmNodeId, latitude, longitude' });
+    }
+
+    const result = await getOrCreateByOsmNodeId(
+      Number(osmNodeId),
+      name || 'Public Fountain',
+      latitude,
+      longitude
+    );
+
+    if (!result) {
+      return res.status(500).json({ error: 'Failed to get or create fountain from OSM' });
+    }
+
+    console.log('POST /api/fountains/by-osm -> success', result.id);
+    res.json(result);
+  } catch (e) {
+    console.error('POST /api/fountains/by-osm', e);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.get('/api/fountains', async (req: Request, res: Response) => {
   try {
     const lat = req.query.lat ? parseFloat(req.query.lat as string) : undefined;
     const lon = req.query.lon ? parseFloat(req.query.lon as string) : undefined;
-    const radius = req.query.radius ? parseInt(req.query.radius as string, 10) : 30000;
+    // Reduce default radius for OSM (20km instead of 50km) to avoid timeouts
+    const radius = req.query.radius ? parseInt(req.query.radius as string, 10) : 20000;
 
     const dbFountains = await getWaterSources();
     console.log('GET /api/fountains (DB) ->', dbFountains.length, 'rows');
@@ -50,14 +79,15 @@ app.get('/api/fountains', async (req: Request, res: Response) => {
     let osmFountains: any[] = [];
     if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
       osmFountains = await fetchOSMFountains(lat, lon, radius);
-      console.log('GET /api/fountains (OSM User Location) ->', osmFountains.length, 'rows');
+      console.log(`GET /api/fountains (OSM @ ${lat},${lon} r=${radius}) ->`, osmFountains.length, 'rows');
     } else {
-      // Default to Gran Canaria if no coords provided
-      osmFountains = await fetchOSMFountains(28.1235, -15.4363, radius);
-      console.log('GET /api/fountains (OSM Default Location) ->', osmFountains.length, 'rows');
+      // If no coords, we don't fetch OSM for now to avoid massive global queries (Overpass doesn't like them)
+      // But we could fetch for a default hub if needed.
+      console.log('GET /api/fountains (OSM Skip) -> no coordinates provided');
     }
 
     const allFountains = [...dbFountains, ...osmFountains];
+    console.log(`GET /api/fountains -> Returning ${allFountains.length} fountains total (${dbFountains.length} DB, ${osmFountains.length} OSM)`);
     res.json(allFountains);
   } catch (e) {
     console.error('GET /api/fountains', e);
