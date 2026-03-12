@@ -17,6 +17,7 @@ export interface Translations {
   distance: string;
   free: string;
   paid: string;
+  getDirections: string;
 
   // Categories
   categoryFountain: string;
@@ -116,6 +117,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     distance: 'Distance',
     free: 'Free',
     paid: 'Paid',
+    getDirections: 'Get Directions',
 
     // Categories
     categoryFountain: 'Fountain',
@@ -214,6 +216,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     distance: 'Distancia',
     free: 'Gratis',
     paid: 'De pago',
+    getDirections: 'Obtener indicaciones',
 
     // Categories
     categoryFountain: 'Fuente',
@@ -312,6 +315,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     distance: 'Afstand',
     free: 'Gratis',
     paid: 'Betalt',
+    getDirections: 'Få rutevejledning',
 
     // Categories
     categoryFountain: 'Fontæne',
@@ -410,6 +414,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     distance: 'Fjarlægð',
     free: 'Ókeypis',
     paid: 'Greitt',
+    getDirections: 'Fá leiðbeiningar',
 
     // Categories
     categoryFountain: 'Lind',

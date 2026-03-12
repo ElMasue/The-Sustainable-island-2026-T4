@@ -143,6 +143,36 @@
   overflow-x: hidden;
 }
 
+.fountain-detail-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.directions-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #3A9BDC;
+  color: white;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  flex: 1;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.directions-button:hover {
+  background: #2b7bb5;
+}
+
+.directions-button:active {
+  transform: scale(0.98);
+}
+
 .meta-badge {
   font-size: 0.875rem;
   padding: 0.375rem 0.75rem;
