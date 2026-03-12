@@ -146,20 +146,26 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
       <div className="profile-menu-header">
         {view !== 'main' ? (
           <div className="settings-header">
-            <button className="back-button" onClick={backToMenu}>&larr;</button>
             <span className="settings-title">
               {view === 'language' ? t.language : 
                view === 'settings' ? t.settings : 
                view === 'favorites' ? t.favorites : t.saved}
             </span>
+            <button className="profile-back-button" onClick={backToMenu}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              <span>{t.back}</span>
+            </button>
           </div>
         ) : (
-          <div className="profile-user-section">
-            <div
-              className={`user-avatar${isEmailUser ? ' user-avatar--editable' : ''}`}
-              onClick={handleAvatarClick}
-              title={isEmailUser ? t.clickToChangePhoto : undefined}
-            >
+          <div className="profile-main-header">
+            <div className="profile-user-section">
+              <div
+                className={`user-avatar${isEmailUser ? ' user-avatar--editable' : ''}`}
+                onClick={handleAvatarClick}
+                title={isEmailUser ? t.clickToChangePhoto : undefined}
+              >
               {uploadingAvatar ? (
                 <span className="avatar-spinner" />
               ) : avatarUrl ? (
@@ -223,6 +229,12 @@ function ProfileMenu({ onClose, onSelectFountain }: ProfileMenuProps) {
                 <span>★ 100 {t.refills}</span>
               </div>
             </div>
+            </div>
+            <button className="profile-close-button" onClick={onClose} title={t.close}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
           </div>
         )}
       </div>

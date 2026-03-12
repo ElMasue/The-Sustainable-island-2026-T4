@@ -89,6 +89,7 @@ export interface Translations {
   close: string;
   search: string;
   or: string;
+  back: string;
 
   // Errors
   imageTooBig: string;
@@ -187,6 +188,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     close: 'Close',
     search: 'Search',
     or: 'Or',
+    back: 'Back',
 
     // Errors
     imageTooBig: 'Image must be under 5 MB',
@@ -284,6 +286,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     close: 'Cerrar',
     search: 'Buscar',
     or: 'O',
+    back: 'Volver',
 
     // Errors
     imageTooBig: 'La imagen debe ser menor a 5 MB',
@@ -381,6 +384,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     close: 'Luk',
     search: 'Søg',
     or: 'Eller',
+    back: 'Tilbage',
 
     // Errors
     imageTooBig: 'Billede skal være under 5 MB',
@@ -478,6 +482,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     close: 'Loka',
     search: 'Leita',
     or: 'Eða',
+    back: 'Til baka',
 
     // Errors
     imageTooBig: 'Mynd verður að vera minni en 5 MB',
