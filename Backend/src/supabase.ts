@@ -184,6 +184,25 @@ export async function updateWaterSource(input: UpdateWaterSourceInput): Promise<
   return toResponse(data as WaterSourceRow);
 }
 
+export async function deleteWaterSource(id: string, userId: string): Promise<boolean> {
+  if (!supabase) {
+    console.error('Supabase client not initialized');
+    return false;
+  }
+
+  const { error } = await supabase
+    .from(TABLE)
+    .delete()
+    .match({ id, user_id: userId });
+
+  if (error) {
+    console.error('supabase deleteWaterSource error', error);
+    return false;
+  }
+
+  return true;
+}
+
 export interface FountainInteractionInput {
   userId: string;
   fountainId: string;

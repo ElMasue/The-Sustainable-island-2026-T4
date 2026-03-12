@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   BottomSheet,
   FountainDetail,
@@ -18,6 +18,7 @@ type SheetContent = 'list' | 'detail' | 'profile';
 
 function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { avatarUrl } = useAuth();
   const [fountains, setFountains] = useState<Fountain[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,6 +74,16 @@ function Home() {
   const [sheetContent, setSheetContent] = useState<SheetContent>('list');
   const [currentSnap, setCurrentSnap] = useState(0);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
+
+  // Open profile menu if navigating back from My Fountains
+  useEffect(() => {
+    if (location.state?.openProfile) {
+      setSheetContent('profile');
+      setCurrentSnap(1);
+      // Clear the state to avoid reopening on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleFountainClick = (fountain: Fountain) => {
     setSelectedFountain(fountain);
