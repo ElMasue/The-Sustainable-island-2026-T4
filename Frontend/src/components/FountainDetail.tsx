@@ -365,6 +365,21 @@ function FountainDetail({ fountain, onBack }: FountainDetailProps) {
 
         <FountainDetailMeta fountain={fountain} />
 
+        <div className="fountain-detail-actions">
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${fountain.latitude},${fountain.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="directions-button"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+            </svg>
+            {t.getDirections}
+          </a>
+        </div>
+
         {fountain.images && fountain.images.length > 0 && (
           <div className="fountain-detail-images">
             {fountain.images.map((image, index) => (
