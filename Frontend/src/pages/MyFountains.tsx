@@ -11,6 +11,7 @@ function MyFountains() {
   const [fountains, setFountains] = useState<Fountain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMyFountains = async () => {
@@ -39,6 +40,36 @@ function MyFountains() {
     fetchMyFountains();
   }, [user]);
 
+  const handleDelete = async (fountainId: string, fountainName: string) => {
+    if (!user) return;
+
+    setDeletingId(fountainId);
+    
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+      const response = await fetch(`${API_BASE}/api/fountains/${fountainId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete fountain');
+      }
+
+      // Remove from local state
+      setFountains(prev => prev.filter(f => f.id !== fountainId));
+      
+    } catch (err) {
+      console.error('Error deleting fountain:', err);
+      alert('Failed to delete fountain. Please try again.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (!user) {
     return (
       <div className="my-fountains" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -55,6 +86,13 @@ function MyFountains() {
       <BackHeader title="My Fountains" backTo="/" />
       
       <div className="my-fountains__content" style={{ padding: '1.5rem', flex: 1 }}>
+        <button className="back-button" onClick={() => navigate('/', { state: { openProfile: true } })} style={{ marginBottom: '1rem' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          <span>Back</span>
+        </button>
+
         {isLoading ? (
           <p style={{ textAlign: 'center', color: '#666', marginTop: '2rem' }}>Loading...</p>
         ) : error ? (
@@ -104,27 +142,58 @@ function MyFountains() {
                   </div>
                 </div>
                 
-                <button
-                  className="my-fountain-edit-btn"
-                  onClick={() => navigate(`/edit-site/${fountain.id}`)}
-                  style={{
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'background 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                  </svg>
-                  Edit
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button
+                    className="my-fountain-edit-btn"
+                    onClick={() => navigate(`/edit-site/${fountain.id}`)}
+                    disabled={deletingId === String(fountain.id)}
+                    style={{
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: deletingId === String(fountain.id) ? 'not-allowed' : 'pointer',
+                      transition: 'background 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      opacity: deletingId === String(fountain.id) ? 0.5 : 1
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Edit
+                  </button>
+                  
+                  <button
+                    className="my-fountain-delete-btn"
+                    onClick={() => handleDelete(String(fountain.id), fountain.name)}
+                    disabled={deletingId === String(fountain.id)}
+                    style={{
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: deletingId === String(fountain.id) ? 'not-allowed' : 'pointer',
+                      transition: 'background 0.2s, color 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: deletingId === String(fountain.id) ? '#ccc' : '#ffebee',
+                      color: deletingId === String(fountain.id) ? '#666' : '#d32f2f'
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                      <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    {deletingId === String(fountain.id) ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

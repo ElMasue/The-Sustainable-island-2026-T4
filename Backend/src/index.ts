@@ -25,6 +25,7 @@ import {
   getWaterSources,
   createWaterSource,
   updateWaterSource,
+  deleteWaterSource,
   addFountainInteraction,
   removeFountainInteraction,
   getUserInteractions,
@@ -126,6 +127,29 @@ app.put('/api/fountains/:id', async (req: Request, res: Response) => {
   } catch (e) {
     console.error('PUT /api/fountains', e);
     res.status(500).json({ error: 'Failed to update fountain' });
+  }
+});
+
+app.delete('/api/fountains/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.body.userId as string;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing required field: userId' });
+    }
+
+    const success = await deleteWaterSource(id as string, userId);
+
+    if (!success) {
+      return res.status(404).json({ error: 'Failed to delete fountain or unauthorized' });
+    }
+
+    console.log('DELETE /api/fountains -> deleted', id);
+    res.json({ message: 'Fountain deleted successfully' });
+  } catch (e) {
+    console.error('DELETE /api/fountains', e);
+    res.status(500).json({ error: 'Failed to delete fountain' });
   }
 });
 
