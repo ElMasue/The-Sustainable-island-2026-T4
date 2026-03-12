@@ -1,3 +1,4 @@
+
 import type { Fountain } from '../types/fountain';
 import { useTranslation } from '../i18n';
 import { translateCategory } from '../i18n/translations';
@@ -17,8 +18,8 @@ function FountainCard({ fountain, onClick, showImage = true }: FountainCardProps
     <button className="fountain-card" onClick={onClick}>
       {showImage && (
         <div className="fountain-card-image">
-          {fountain.imageUrl ? (
-            <img src={fountain.imageUrl} alt={fountain.name} />
+          {fountain.images && fountain.images.length > 0 ? (
+            <img src={fountain.images[0]} alt={fountain.name} />
           ) : (
             <div className="fountain-placeholder">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

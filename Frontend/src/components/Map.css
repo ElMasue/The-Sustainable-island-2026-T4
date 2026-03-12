@@ -162,3 +162,38 @@
     height: 56px;
   }
 }
+
+/* ── Dark Mode Support ── */
+body.dark-mode .leaflet-tile-pane {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+body.dark-mode .map-locate-btn {
+  background: #2a2a2a;
+  color: #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .map-locate-btn:hover {
+  background: #333;
+  color: #fff;
+}
+
+body.dark-mode .map-locate-btn--denied {
+  background: #2a2a2a;
+  color: #e74c3c;
+}
+
+body.dark-mode .fountain-popup .leaflet-popup-content-wrapper,
+body.dark-mode .fountain-popup .leaflet-popup-tip {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+body.dark-mode .fountain-popup h3 {
+  color: #ecf0f1;
+}
+
+body.dark-mode .fountain-popup p {
+  color: #bdc3c7;
+}
